@@ -13,7 +13,11 @@ export const sectionTemplate: Template = {
   ],
   render(data) {
     return `<div class="nb-block nb-block--section" data-template="section">
-  <h3 class="nb-section-heading">Τμήμα ${data.number} – ${data.title}</h3>
+  <div class="nb-struct-heading nb-struct-heading--section">
+    <span class="nb-struct-role">Τμήμα ${data.number}</span>
+    <span class="nb-struct-rule"></span>
+    <span class="nb-struct-title">${data.title}</span>
+  </div>
   <div class="nb-container-zone nb-section-body" data-container-for="articles"></div>
 </div>`;
   },

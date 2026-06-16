@@ -1,3 +1,20 @@
+/* Ensure [hidden] attribute always wins regardless of display overrides */
+[hidden] { display: none !important; }
+
+/* ══════════════════════════════════════════════════
+   SHARP CORNERS – override DaisyUI rounded variables
+   ══════════════════════════════════════════════════ */
+
+:root, [data-theme] {
+  --rounded-box: 0rem;
+  --rounded-btn: 0rem;
+  --rounded-badge: 0rem;
+}
+
+*, *::before, *::after {
+  border-radius: 0 !important;
+}
+
 /* ══════════════════════════════════════════════════
    CANVAS & PAPER
    ══════════════════════════════════════════════════ */
@@ -6,6 +23,7 @@
   background: #d8d8d8;
   padding: 32px 20px 48px;
   min-height: 100%;
+  flex: 1;
 }
 
 .nb-paper {
@@ -13,15 +31,67 @@
   max-width: 760px;
   margin: 0 auto;
   background: #ffffff;
-  padding: 70px 88px 88px;
+  padding: 40px 52px 56px;
   font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
   font-size: 11.5pt;
   line-height: 1.65;
   color: #0b0c0c;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08);
   min-height: 297mm;
   position: relative;
   box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ══════════════════════════════════════════════════
+   MODE BAR
+   ══════════════════════════════════════════════════ */
+
+.nb-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--color-base-100, #ffffff);
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.nb-mode-tabs {
+  display: flex;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 2px;
+}
+
+.nb-mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+  font-family: system-ui, sans-serif;
+  line-height: 1.4;
+
+  &:hover { color: #374151; background: rgba(255, 255, 255, 0.7); }
+
+  &--active {
+    background: #ffffff;
+    color: #003476;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.08);
+    outline: 1px solid #d1d5db;
+  }
 }
 
 /* ══════════════════════════════════════════════════
@@ -30,16 +100,28 @@
 
 .nb-block-wrapper {
   position: relative;
-  border-radius: 2px;
   transition: outline 0.1s;
+}
 
-  &:hover {
+// Hover effects only in edit mode
+body:is(:not([data-nb-mode]), [data-nb-mode="edit"]) {
+  .nb-block-wrapper:hover {
     outline: 2px solid #003476;
     outline-offset: 2px;
 
-    .nb-block-actions {
+    > .nb-block-actions {
       opacity: 1;
       pointer-events: auto;
+    }
+  }
+
+  // If a nested wrapper is hovered, suppress the parent's highlight
+  .nb-block-wrapper:hover:has(.nb-block-wrapper:hover) {
+    outline: none;
+
+    > .nb-block-actions {
+      opacity: 0;
+      pointer-events: none;
     }
   }
 }
@@ -55,10 +137,9 @@
   pointer-events: none;
   transition: opacity 0.15s;
   background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border: 1px solid #d1d5db;
   padding: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.08);
   z-index: 10;
 }
 
@@ -69,7 +150,6 @@
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   color: #374151;
@@ -77,6 +157,127 @@
 
   &:hover { background: #f3f4f6; }
   &--delete:hover { background: #fee2e2; color: #dc2626; }
+  &--drag { cursor: grab; color: #9ca3af; &:active { cursor: grabbing; } }
+}
+
+/* ══════════════════════════════════════════════════
+   PREVIEW MODE — clean document, no interaction UI
+   ══════════════════════════════════════════════════ */
+
+body[data-nb-mode="preview"] {
+  .nb-block--note { display: none; }
+}
+
+/* ══════════════════════════════════════════════════
+   CODE MODE — LaTeX panel
+   ══════════════════════════════════════════════════ */
+
+body[data-nb-mode="code"] .nb-canvas {
+  display: none;
+}
+
+.nb-code-panel {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.nb-code-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  border-bottom: 1px solid #313244;
+  flex-shrink: 0;
+}
+
+.nb-code-label {
+  font-weight: 600;
+  color: #89b4fa;
+  letter-spacing: 0.01em;
+}
+
+.nb-code-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.nb-code-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  background: #313244;
+  color: #cdd6f4;
+  cursor: pointer;
+  font-family: system-ui, sans-serif;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover { background: #45475a; border-color: #585b70; }
+}
+
+.nb-code-content {
+  flex: 1;
+  overflow: auto;
+  margin: 0;
+  padding: 24px 32px;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre;
+  tab-size: 2;
+
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-track { background: #181825; }
+  &::-webkit-scrollbar-thumb { background: #45475a; border-radius: 4px; }
+}
+
+/* ══════════════════════════════════════════════════
+   DRAG & DROP
+   ══════════════════════════════════════════════════ */
+
+.nb-drop-indicator {
+  position: fixed;
+  height: 2px;
+  background: #003476;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: 1px;
+  display: none;
+  box-shadow: 0 0 6px rgba(0, 52, 118, 0.5);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #003476;
+  }
+
+  &::before { left: -4px; }
+  &::after { right: -4px; }
+}
+
+.nb-dragging {
+  opacity: 0.4;
+  outline: 2px dashed #003476 !important;
+  outline-offset: 2px;
 }
 
 /* ══════════════════════════════════════════════════
@@ -85,50 +286,50 @@
 
 .nb-block { padding: 4px 0; }
 
-/* --- Part (Μέρος) --- */
-.nb-block--part { margin: 40px 0 28px; }
+/* ── Shared structural heading ── */
 
-.nb-part-heading {
-  font-size: 14pt;
-  font-weight: 700;
-  text-align: left;
-  margin: 0;
-  padding: 10px 0;
-  border-top: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
+.nb-struct-heading {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  margin-bottom: 8px;
 }
+
+.nb-struct-role {
+  font-weight: 700;
+  display: block;
+}
+
+.nb-struct-rule {
+  display: block;
+  height: 1px;
+  background: currentColor;
+  margin: 3px 0 2px;
+  opacity: 0.55;
+}
+
+.nb-struct-title {
+  display: block;
+  font-weight: 700;
+}
+
+/* Per-level sizing — clear descending hierarchy */
+.nb-struct-heading--part    { font-size: 17pt; }
+.nb-struct-heading--chapter { font-size: 15pt; }
+.nb-struct-heading--section { font-size: 13pt; }
+.nb-struct-heading--article { font-size: 12pt; }
+
+/* --- Part (Μέρος) --- */
+.nb-block--part { margin: 32px 0 20px; }
 
 /* --- Chapter (Κεφάλαιο) --- */
-.nb-block--chapter { margin: 28px 0 20px; }
-
-.nb-chapter-heading {
-  font-size: 12.5pt;
-  font-weight: 700;
-  text-align: left;
-  margin: 0;
-  padding-bottom: 4px;
-  border-bottom: 1px solid currentColor;
-}
+.nb-block--chapter { margin: 22px 0 14px; }
 
 /* --- Section (Τμήμα) --- */
-.nb-block--section { margin: 22px 0 14px; }
-
-.nb-section-heading {
-  font-size: 12pt;
-  font-weight: 700;
-  text-align: left;
-  margin: 0;
-}
+.nb-block--section { margin: 16px 0 10px; }
 
 /* --- Article (Άρθρο) --- */
-.nb-block--article { margin: 20px 0; }
-
-.nb-article-heading {
-  font-size: 11.5pt;
-  font-weight: 700;
-  text-align: left;
-  margin: 0 0 8px;
-}
+.nb-block--article { margin: 14px 0; }
 
 .nb-article-body {
   text-align: left;
@@ -137,16 +338,28 @@
   ol, ul { margin: 4px 0 4px 20px; }
 }
 
-/* --- Paragraph --- */
-.nb-block--paragraph { margin: 2px 0; }
+/* --- Paragraph & Sub-paragraph --- */
+.nb-block--paragraph,
+.nb-block--subparagraph {
+  margin: 0;
+  padding: 0;
+}
 
 .nb-paragraph {
-  text-align: left;
   margin: 0;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .nb-para-num {
   font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Each container zone inside a paragraph/subparagraph indents its children */
+.nb-subpara-zone {
+  padding-left: 22px;
 }
 
 /* --- Preamble --- */
@@ -174,7 +387,6 @@
   gap: 8px;
   background: #fefce8;
   border-left: 3px solid #eab308;
-  border-radius: 0 6px 6px 0;
   padding: 8px 12px;
   margin: 10px 0;
   font-family: 'Roboto', system-ui, sans-serif;
@@ -204,47 +416,372 @@
   font-family: 'Noto Serif', serif;
 }
 
+/* --- Definition (Ορισμός) --- */
+.nb-block--definition { margin: 6px 0; }
+
+.nb-definition {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 16px;
+  margin: 0;
+}
+
+.nb-def-term {
+  font-weight: 700;
+  font-style: italic;
+  white-space: nowrap;
+  padding-top: 1px;
+
+  &::after { content: ':'; }
+}
+
+.nb-def-body {
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* --- Amendment (Τροποποίηση) --- */
+.nb-block--amendment { margin: 10px 0; }
+
+.nb-amendment {
+  margin: 0 0 4px;
+  font-style: italic;
+}
+
+.nb-amendment-text {
+  margin: 4px 0 0 16px;
+  padding: 6px 12px;
+  border-left: 2px solid #0b0c0c;
+  font-style: normal;
+}
+
+/* --- Annex (Παράρτημα) --- */
+.nb-block--annex { margin: 28px 0 16px; }
+
+.nb-struct-heading--annex { font-size: 14pt; }
+
+/* --- Transitional (Μεταβατική) --- */
+.nb-block--transitional { margin: 14px 0; }
+
+.nb-struct-heading--transitional {
+  .nb-struct-role { color: #374151; }
+}
+
+/* --- Page Break (Αλλαγή Σελίδας) --- */
+.nb-block--pagebreak {
+  margin: 24px 0;
+  page-break-after: always;
+}
+
+.nb-pagebreak {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  user-select: none;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(
+      to right,
+      #9ca3af 0,
+      #9ca3af 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  }
+}
+
+.nb-pagebreak-label {
+  font-family: system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+@media print {
+  .nb-pagebreak { display: none; }
+}
+
+/* ══════════════════════════════════════════════════
+   PREVIEW PAGES  (replaces .nb-paper in preview mode)
+   ══════════════════════════════════════════════════ */
+
+.nb-preview-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+// Applied together with .nb-paper: inherits all paper styles,
+// overrides height to strict A4 and clips overflow
+.nb-preview-page-item {
+  height: 297mm !important;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════
+   PAGE ADD BUTTONS
+   ══════════════════════════════════════════════════ */
+
+.nb-page-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: min(210mm, 100%);
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 10px;
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: 1px dashed #9ca3af;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+
+  svg { flex-shrink: 0; }
+
+  &:hover {
+    color: #003476;
+    border-color: #003476;
+    background: rgba(0, 52, 118, 0.04);
+  }
+
+  &#nb-add-page-top { margin-bottom: 12px; }
+  &#nb-add-page-bottom { margin-top: 12px; }
+}
+
+body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════
+   FILE AREA (mode bar right side)
+   ══════════════════════════════════════════════════ */
+
+.nb-file-area {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nb-save-status {
+  font-size: 11px;
+  color: #6b7280;
+  font-family: system-ui, sans-serif;
+  white-space: nowrap;
+  padding: 0 4px;
+
+  &::before { content: '✓ '; }
+}
+
+.nb-file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: system-ui, sans-serif;
+  color: #374151;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  white-space: nowrap;
+  line-height: 1.4;
+
+  &:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  &--primary {
+    background: #003476;
+    color: #ffffff;
+    border-color: #003476;
+
+    &:hover { background: #002a5e; border-color: #002a5e; }
+  }
+}
+
+/* ── Dropdown ─────────────────────────────────────── */
+
+.nb-dropdown-wrap {
+  position: relative;
+}
+
+.nb-file-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 230px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.08);
+  z-index: 50;
+  padding: 4px 0;
+  font-family: system-ui, sans-serif;
+}
+
+.nb-file-menu-section {
+  padding: 6px 12px 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+
+.nb-file-menu-sep {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 4px 0;
+}
+
+.nb-file-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #111827;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:hover { background: #f3f4f6; }
+
+  svg { flex-shrink: 0; color: #6b7280; }
+}
+
+.nb-file-menu-ext {
+  margin-left: auto;
+  font-size: 10px;
+  font-family: monospace;
+  color: #9ca3af;
+  background: #f3f4f6;
+  padding: 1px 5px;
+}
+
+/* ══════════════════════════════════════════════════
+   RESTORE BANNER
+   ══════════════════════════════════════════════════ */
+
+.nb-restore-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  color: #1e40af;
+
+  span { flex: 1; }
+}
+
+.nb-restore-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: system-ui, sans-serif;
+  cursor: pointer;
+  border: 1px solid #3b82f6;
+  background: transparent;
+  color: #1d4ed8;
+  transition: background 0.1s;
+  white-space: nowrap;
+
+  &:hover { background: rgba(59, 130, 246, 0.1); }
+
+  &--yes {
+    background: #1d4ed8;
+    color: #ffffff;
+    &:hover { background: #1e40af; }
+  }
+}
+
 /* ══════════════════════════════════════════════════
    CONTAINER ZONES – invisible, no editing UI on doc
    ══════════════════════════════════════════════════ */
 
 .nb-container-zone {
-  /* The zone itself is transparent – no borders, no placeholders */
   min-height: 4px;
 }
 
 /* ══════════════════════════════════════════════════
-   PRINT
+   PRINT  (Ctrl+P fallback — PDF export uses a popup)
    ══════════════════════════════════════════════════ */
 
 @page { size: A4 portrait; margin: 20mm; }
 
 @media print {
+  // Lift overflow: hidden set by main.scss so the browser can see content
   html, body {
-    width: auto !important;
+    overflow: visible !important;
     height: auto !important;
+    background: white !important;
+  }
+
+  // Flatten the DaisyUI drawer (overflow-y: auto clips to viewport height)
+  #nb-app, .drawer, .drawer-content {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  // Strip canvas decoration
+  .nb-canvas {
+    display: block !important;
+    background: white !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    min-height: 0 !important;
+  }
+
+  // Hide all editor chrome
+  .drawer-side, .nb-mode-bar, .nb-restore-banner,
+  .nb-page-add-btn, .nb-block-actions, .nb-block--note,
+  .nb-code-panel, .nb-preview-pages { display: none !important; }
+
+  // Paper: full-width, no decoration
+  #nb-paper {
+    width: 100% !important;
+    max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
-  }
-
-  body * { visibility: hidden !important; }
-  #nb-paper, #nb-paper * { visibility: visible !important; }
-
-  #nb-paper {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
     box-shadow: none !important;
-    max-width: none !important;
-    padding: 0 !important;
-    min-height: auto !important;
+    min-height: 0 !important;
   }
 
-  .nb-no-print,
-  .nb-block--note,
-  .nb-block-actions,
-  .drawer-side { display: none !important; }
+  // Page breaks
+  .nb-block--pagebreak {
+    break-after: page !important;
+    page-break-after: always !important;
+    > .nb-block { display: none !important; }
+  }
 
   .nb-container-zone { min-height: 0 !important; }
+  .nb-pagebreak { display: none !important; }
 }

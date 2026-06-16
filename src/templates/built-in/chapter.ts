@@ -13,7 +13,11 @@ export const chapterTemplate: Template = {
   ],
   render(data) {
     return `<div class="nb-block nb-block--chapter" data-template="chapter">
-  <h2 class="nb-chapter-heading">Κεφάλαιο ${data.number} – ${data.title}</h2>
+  <div class="nb-struct-heading nb-struct-heading--chapter">
+    <span class="nb-struct-role">Κεφάλαιο ${data.number}</span>
+    <span class="nb-struct-rule"></span>
+    <span class="nb-struct-title">${data.title}</span>
+  </div>
   <div class="nb-container-zone nb-chapter-body" data-container-for="articles"></div>
 </div>`;
   },

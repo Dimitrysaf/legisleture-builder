@@ -13,7 +13,11 @@ export const partTemplate: Template = {
   ],
   render(data) {
     return `<div class="nb-block nb-block--part" data-template="part">
-  <h1 class="nb-part-heading">Μέρος ${data.number} – ${data.title}</h1>
+  <div class="nb-struct-heading nb-struct-heading--part">
+    <span class="nb-struct-role">Μέρος ${data.number}</span>
+    <span class="nb-struct-rule"></span>
+    <span class="nb-struct-title">${data.title}</span>
+  </div>
   <div class="nb-container-zone nb-part-body" data-container-for="chapters"></div>
 </div>`;
   },

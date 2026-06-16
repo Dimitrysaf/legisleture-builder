@@ -6,6 +6,9 @@ const GREEK_ORDINALS = [
   'Δέκατο Έκτο', 'Δέκατο Έβδομο', 'Δέκατο Όγδοο', 'Δέκατο Ένατο', 'Εικοστό',
 ];
 
+// Lowercase Greek alphabet used for sub-paragraph hierarchical numbering
+const GREEK_LOWER = ['α','β','γ','δ','ε','ζ','η','θ','ι','κ','λ','μ','ν','ξ','ο','π','ρ','σ','τ','υ','φ','χ','ψ','ω'];
+
 export function toArabic(n: number): string {
   return String(n);
 }
@@ -20,6 +23,34 @@ export function toGreekWord(n: number): string {
 
 export function allFormats(n: number): [string, string, string] {
   return [toArabic(n), toGreekLetter(n), toGreekWord(n)];
+}
+
+/**
+ * Generates a Greek lowercase sub-paragraph label.
+ *   depth 1 → α, β, γ …
+ *   depth 2 → αα, αβ, αγ … βα, ββ …
+ *   depth 3 → ααα, ααβ … etc.
+ */
+export function toGreekSubNum(n: number, depth: number): string {
+  if (depth <= 1) return GREEK_LOWER[(n - 1) % GREEK_LOWER.length] ?? String(n);
+  const base = GREEK_LOWER.length;
+  const firstIdx = Math.floor((n - 1) / base);
+  const rest = ((n - 1) % base) + 1;
+  return (GREEK_LOWER[firstIdx] ?? String(firstIdx)) + toGreekSubNum(rest, depth - 1);
+}
+
+/**
+ * Returns the nesting depth for a sub-paragraph being inserted into `container`.
+ * Depth 1 = directly inside a paragraph, depth 2 = inside a sub-paragraph, etc.
+ */
+export function getSubParaDepth(container: HTMLElement): number {
+  let depth = 0;
+  let el: HTMLElement | null = container;
+  while (el) {
+    if ((el as HTMLElement).dataset?.template === 'subparagraph') depth++;
+    el = el.parentElement;
+  }
+  return depth + 1;
 }
 
 export function countBlocksOfType(templateId: string, container: HTMLElement): number {

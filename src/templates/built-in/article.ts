@@ -12,9 +12,13 @@ export const articleTemplate: Template = {
     { id: 'body', label: 'Περιεχόμενο', type: 'container' },
   ],
   render(data) {
-    const titlePart = data.title?.trim() ? ` – ${data.title.trim()}` : '';
+    const titleRow = data.title?.trim()
+      ? `<span class="nb-struct-rule"></span><span class="nb-struct-title">${data.title.trim()}</span>`
+      : '';
     return `<div class="nb-block nb-block--article" data-template="article">
-  <h4 class="nb-article-heading">Άρθρο ${data.number}${titlePart}</h4>
+  <div class="nb-struct-heading nb-struct-heading--article">
+    <span class="nb-struct-role">Άρθρο ${data.number}</span>${titleRow}
+  </div>
   <div class="nb-container-zone nb-article-body" data-container-for="body"></div>
 </div>`;
   },

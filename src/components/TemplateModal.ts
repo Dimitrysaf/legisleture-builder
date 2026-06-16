@@ -11,7 +11,7 @@ export function openTemplateModal(
   template: Template,
   existing: TemplateInstance | null = null,
   onConfirm?: OnConfirmFn,
-  opts?: { nextN?: number }
+  opts?: { nextN?: number; nextLabel?: string }
 ): void {
   if (!_modal) {
     _modal = document.createElement('dialog');
@@ -41,7 +41,12 @@ export function openTemplateModal(
       <div id="nb-tm-fields" class="space-y-4">
         ${template.fields
           .filter(f => f.type !== 'container')
-          .map(f => renderField(f, existing?.data[f.id] ?? f.defaultValue ?? '', (!existing && f.id === 'number' && opts?.nextN != null) ? opts.nextN : undefined))
+          .map(f => renderField(
+            f,
+            existing?.data[f.id] ?? f.defaultValue ?? '',
+            (!existing && f.id === 'number' && opts?.nextN != null) ? opts.nextN : undefined,
+            (!existing && f.id === 'number') ? opts?.nextLabel : undefined,
+          ))
           .join('')}
       </div>
 
@@ -87,24 +92,31 @@ export function openTemplateModal(
 
 // ── Field rendering ───────────────────────────────────────────────
 
-function renderField(f: TemplateField, value: string, nextN?: number): string {
+function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?: string): string {
   const label = `<label class="label pb-1"><span class="label-text font-medium text-sm">${f.label}${f.required ? ' <span class="text-error">*</span>' : ''}</span></label>`;
   const hint = f.hint ? `<div class="label pt-0.5"><span class="label-text-alt text-base-content/50">${f.hint}</span></div>` : '';
 
-  const numChips = (nextN != null)
-    ? (() => {
-        const [arabic, letter, word] = allFormats(nextN);
-        const chips = f.type === 'number'
-          ? `<button type="button" class="nb-numfmt-chip badge badge-outline badge-sm font-mono" data-field="${f.id}" data-val="${arabic}">${arabic}</button>`
-          : `<button type="button" class="nb-numfmt-chip badge badge-outline badge-sm font-mono" data-field="${f.id}" data-val="${arabic}">${arabic}</button>
+  const numChips = (() => {
+    if (nextN != null) {
+      const [arabic, letter, word] = allFormats(nextN);
+      const chips = f.type === 'number'
+        ? `<button type="button" class="nb-numfmt-chip badge badge-outline badge-sm font-mono" data-field="${f.id}" data-val="${arabic}">${arabic}</button>`
+        : `<button type="button" class="nb-numfmt-chip badge badge-outline badge-sm font-mono" data-field="${f.id}" data-val="${arabic}">${arabic}</button>
           <button type="button" class="nb-numfmt-chip badge badge-outline badge-sm" data-field="${f.id}" data-val="${letter}">${letter}</button>
           <button type="button" class="nb-numfmt-chip badge badge-outline badge-sm" data-field="${f.id}" data-val="${word}">${word}</button>`;
-        return `<div class="flex flex-wrap items-center gap-1.5 mt-1.5">
-          <span class="text-[11px] text-base-content/40">Επόμενος:</span>
-          ${chips}
-        </div>`;
-      })()
-    : '';
+      return `<div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+        <span class="text-[11px] text-base-content/40">Επόμενος:</span>
+        ${chips}
+      </div>`;
+    }
+    if (nextLabel) {
+      return `<div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+        <span class="text-[11px] text-base-content/40">Επόμενος:</span>
+        <button type="button" class="nb-numfmt-chip badge badge-outline badge-sm" data-field="${f.id}" data-val="${nextLabel}">${nextLabel}.</button>
+      </div>`;
+    }
+    return '';
+  })();
 
   switch (f.type) {
     case 'rich-text':

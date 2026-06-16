@@ -5,7 +5,8 @@ import {
   FileText, Bookmark, List, ListOrdered, Link2, Calendar,
   Building2, Gavel, Shield, ClipboardList, FilePlus, Tag,
   Quote, Type, Save, Info,
-  ArrowUp, ArrowDown,
+  ArrowUp, ArrowDown, CornerDownRight, GripVertical, Code,
+  Hash, Replace, BookMarked, ChevronsRight, SeparatorHorizontal,
 } from 'lucide';
 
 const ICONS = {
@@ -14,7 +15,8 @@ const ICONS = {
   FileText, Bookmark, List, ListOrdered, Link2, Calendar,
   Building2, Gavel, Shield, ClipboardList, FilePlus, Tag,
   Quote, Type, Save, Info,
-  ArrowUp, ArrowDown,
+  ArrowUp, ArrowDown, CornerDownRight, GripVertical, Code,
+  Hash, Replace, BookMarked, ChevronsRight, SeparatorHorizontal,
 };
 
 export function refreshIcons(): void {
@@ -28,6 +30,11 @@ export function icon(name: string, cls = 'w-4 h-4'): string {
 
 /** All icons available for custom template icon picker */
 export const ICON_OPTIONS: { name: string; label: string }[] = [
+  { name: 'hash',                label: 'Ορισμός' },
+  { name: 'replace',             label: 'Τροποποίηση' },
+  { name: 'book-marked',         label: 'Παράρτημα' },
+  { name: 'chevrons-right',      label: 'Μεταβατική' },
+  { name: 'separator-horizontal',label: 'Αλλαγή Σελίδας' },
   { name: 'book-open',     label: 'Άρθρο' },
   { name: 'layers',        label: 'Κεφάλαιο' },
   { name: 'align-left',    label: 'Παράγραφος' },

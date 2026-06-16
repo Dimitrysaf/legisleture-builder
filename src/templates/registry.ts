@@ -4,9 +4,15 @@ import { chapterTemplate } from './built-in/chapter';
 import { sectionTemplate } from './built-in/section';
 import { articleTemplate } from './built-in/article';
 import { paragraphTemplate } from './built-in/paragraph';
+import { subparagraphTemplate } from './built-in/subparagraph';
 import { preambleTemplate } from './built-in/preamble';
 import { lawRefTemplate } from './built-in/lawref';
 import { noteTemplate } from './built-in/note';
+import { definitionTemplate } from './built-in/definition';
+import { amendmentTemplate } from './built-in/amendment';
+import { annexTemplate } from './built-in/annex';
+import { transitionalTemplate } from './built-in/transitional';
+import { pagebreakTemplate } from './built-in/pagebreak';
 
 const STORAGE_KEY = 'nb_custom_templates';
 
@@ -16,9 +22,15 @@ const registry = new Map<string, Template>([
   ['section', sectionTemplate],
   ['article', articleTemplate],
   ['paragraph', paragraphTemplate],
+  ['subparagraph', subparagraphTemplate],
+  ['transitional', transitionalTemplate],
+  ['annex', annexTemplate],
   ['preamble', preambleTemplate],
+  ['amendment', amendmentTemplate],
+  ['definition', definitionTemplate],
   ['lawref', lawRefTemplate],
   ['note', noteTemplate],
+  ['pagebreak', pagebreakTemplate],
 ]);
 
 export function getTemplate(id: string): Template | undefined {

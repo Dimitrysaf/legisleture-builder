@@ -10,12 +10,10 @@ const CATEGORIES = [
 ] as const;
 
 type OnSelectFn = (template: Template) => void;
-type OnNewTemplateFn = () => void;
 
 export function initToolbar(
   container: HTMLElement,
   onSelect: OnSelectFn,
-  onNewTemplate: OnNewTemplateFn
 ): void {
   container.innerHTML = `
     <div class="flex items-center justify-between px-4 py-3 border-b border-base-300">
@@ -33,11 +31,6 @@ export function initToolbar(
       />
     </div>
     <div class="flex-1 overflow-y-auto px-3 pb-3" id="nb-template-list"></div>
-    <div class="p-3 border-t border-base-300">
-      <button id="nb-new-template-btn" class="btn btn-outline btn-primary btn-sm w-full gap-1.5">
-        ${icon('plus-circle', 'w-4 h-4')} Νέο Template
-      </button>
-    </div>
   `;
 
   renderList('', onSelect);
@@ -46,14 +39,15 @@ export function initToolbar(
   document.getElementById('nb-template-search')?.addEventListener('input', (e) => {
     renderList((e.target as HTMLInputElement).value.toLowerCase().trim(), onSelect);
   });
-
-  document.getElementById('nb-new-template-btn')?.addEventListener('click', onNewTemplate);
 }
 
 export function refreshToolbar(onSelect: OnSelectFn): void {
   const search = (document.getElementById('nb-template-search') as HTMLInputElement | null)?.value?.toLowerCase().trim() ?? '';
   renderList(search, onSelect);
 }
+
+// Kept for potential future use by custom template workflows
+export type { OnSelectFn };
 
 function renderList(search: string, onSelect: OnSelectFn): void {
   const container = document.getElementById('nb-template-list');

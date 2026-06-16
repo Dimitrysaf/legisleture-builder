@@ -1,5 +1,11 @@
 @import "builder";
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Roboto', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
