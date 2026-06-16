@@ -1,4 +1,7 @@
 import type { Template, TemplateField, TemplateInstance } from '../templates/types';
+import { icon, refreshIcons } from '../utils/icons';
+import { allFormats } from '../utils/numbering';
+import { openRefPickerModal } from './RefPickerModal';
 
 type OnConfirmFn = (html: string, instance: TemplateInstance) => void;
 
@@ -7,7 +10,8 @@ let _modal: HTMLDialogElement | null = null;
 export function openTemplateModal(
   template: Template,
   existing: TemplateInstance | null = null,
-  onConfirm?: OnConfirmFn
+  onConfirm?: OnConfirmFn,
+  opts?: { nextN?: number }
 ): void {
   if (!_modal) {
     _modal = document.createElement('dialog');
@@ -19,11 +23,11 @@ export function openTemplateModal(
   _modal.innerHTML = `
     <div class="modal-box w-11/12 max-w-2xl font-sans">
       <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3">✕</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3">${icon('x', 'w-4 h-4')}</button>
       </form>
 
       <div class="flex items-center gap-3 mb-5">
-        <span class="text-4xl leading-none">${template.icon}</span>
+        <span class="text-base-content/70">${icon(template.icon, 'w-8 h-8')}</span>
         <div>
           <h3 class="font-bold text-lg leading-tight">
             ${existing ? 'Επεξεργασία' : 'Εισαγωγή'}: ${template.name}
@@ -35,7 +39,10 @@ export function openTemplateModal(
       </div>
 
       <div id="nb-tm-fields" class="space-y-4">
-        ${template.fields.map(f => renderField(f, existing?.data[f.id] ?? f.defaultValue ?? '')).join('')}
+        ${template.fields
+          .filter(f => f.type !== 'container')
+          .map(f => renderField(f, existing?.data[f.id] ?? f.defaultValue ?? '', (!existing && f.id === 'number' && opts?.nextN != null) ? opts.nextN : undefined))
+          .join('')}
       </div>
 
       <div class="modal-action mt-6">
@@ -50,6 +57,18 @@ export function openTemplateModal(
 
   _modal.querySelectorAll<HTMLElement>('[data-rich]').forEach(initRichEditor);
 
+  _modal.querySelectorAll<HTMLButtonElement>('.nb-numfmt-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const input = _modal!.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${chip.dataset.field}"]`);
+      if (input) {
+        input.value = chip.dataset.val!;
+        _modal!.querySelectorAll<HTMLButtonElement>(`.nb-numfmt-chip[data-field="${chip.dataset.field}"]`)
+          .forEach(c => c.classList.remove('badge-primary'));
+        chip.classList.add('badge-primary');
+      }
+    });
+  });
+
   document.getElementById('nb-tm-confirm')!.addEventListener('click', () => {
     const data = collectData(_modal!);
     if (!validateData(data, template, _modal!)) return;
@@ -63,13 +82,29 @@ export function openTemplateModal(
   });
 
   _modal.showModal();
+  refreshIcons();
 }
 
 // ── Field rendering ───────────────────────────────────────────────
 
-function renderField(f: TemplateField, value: string): string {
+function renderField(f: TemplateField, value: string, nextN?: number): string {
   const label = `<label class="label pb-1"><span class="label-text font-medium text-sm">${f.label}${f.required ? ' <span class="text-error">*</span>' : ''}</span></label>`;
   const hint = f.hint ? `<div class="label pt-0.5"><span class="label-text-alt text-base-content/50">${f.hint}</span></div>` : '';
+
+  const numChips = (nextN != null)
+    ? (() => {
+        const [arabic, letter, word] = allFormats(nextN);
+        const chips = f.type === 'number'
+          ? `<button type="button" class="nb-numfmt-chip badge badge-outline badge-sm font-mono" data-field="${f.id}" data-val="${arabic}">${arabic}</button>`
+          : `<button type="button" class="nb-numfmt-chip badge badge-outline badge-sm font-mono" data-field="${f.id}" data-val="${arabic}">${arabic}</button>
+          <button type="button" class="nb-numfmt-chip badge badge-outline badge-sm" data-field="${f.id}" data-val="${letter}">${letter}</button>
+          <button type="button" class="nb-numfmt-chip badge badge-outline badge-sm" data-field="${f.id}" data-val="${word}">${word}</button>`;
+        return `<div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+          <span class="text-[11px] text-base-content/40">Επόμενος:</span>
+          ${chips}
+        </div>`;
+      })()
+    : '';
 
   switch (f.type) {
     case 'rich-text':
@@ -77,15 +112,17 @@ function renderField(f: TemplateField, value: string): string {
         ${label}
         <div class="border border-base-300 rounded-lg overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
           <div class="flex flex-wrap gap-0.5 p-1 bg-base-200 border-b border-base-300">
-            ${richToolbarBtn('bold',              '<b>B</b>',    'Bold')}
-            ${richToolbarBtn('italic',            '<i>I</i>',    'Italic')}
-            ${richToolbarBtn('underline',         '<u>U</u>',    'Υπογράμμιση')}
+            ${richToolbarBtn('bold',              '<b class="text-xs leading-none">B</b>',         'Bold')}
+            ${richToolbarBtn('italic',            '<i class="text-xs leading-none font-serif">I</i>', 'Italic')}
+            ${richToolbarBtn('underline',         '<u class="text-xs leading-none">U</u>',          'Υπογράμμιση')}
             <div class="w-px h-5 bg-base-300 self-center mx-0.5"></div>
-            ${richToolbarBtn('superscript',       'x²',          'Εκθέτης')}
-            ${richToolbarBtn('subscript',         'x₂',          'Δείκτης')}
+            ${richToolbarBtn('superscript',       '<span class="text-xs leading-none">x²</span>',  'Εκθέτης')}
+            ${richToolbarBtn('subscript',         '<span class="text-xs leading-none">x₂</span>',  'Δείκτης')}
             <div class="w-px h-5 bg-base-300 self-center mx-0.5"></div>
-            ${richToolbarBtn('insertOrderedList', '1.',          'Αριθμημένη λίστα')}
-            ${richToolbarBtn('removeFormat',      '✕',           'Καθαρισμός μορφοποίησης')}
+            ${richToolbarBtn('insertOrderedList', icon('list-ordered', 'w-3.5 h-3.5'),             'Αριθμημένη λίστα')}
+            <div class="w-px h-5 bg-base-300 self-center mx-0.5"></div>
+            <button type="button" class="btn btn-xs btn-ghost font-normal" data-ref-insert title="Παραπομπή">${icon('link-2', 'w-3.5 h-3.5')}</button>
+            ${richToolbarBtn('removeFormat',      icon('x', 'w-3.5 h-3.5'),                        'Καθαρισμός')}
           </div>
           <div
             class="p-3 min-h-[120px] focus:outline-none font-serif text-sm leading-relaxed"
@@ -120,6 +157,7 @@ function renderField(f: TemplateField, value: string): string {
           placeholder="${f.placeholder ?? ''}"
           ${f.required ? 'required' : ''}
         />
+        ${numChips}
         ${hint}
       </div>`;
 
@@ -134,6 +172,7 @@ function renderField(f: TemplateField, value: string): string {
           placeholder="${f.placeholder ?? ''}"
           ${f.required ? 'required' : ''}
         />
+        ${numChips}
         ${hint}
       </div>`;
   }
@@ -147,11 +186,28 @@ function richToolbarBtn(cmd: string, html: string, title: string): string {
 
 function initRichEditor(editor: HTMLElement): void {
   const toolbar = editor.closest('.border')?.querySelector<HTMLElement>('.flex');
+
   toolbar?.querySelectorAll<HTMLButtonElement>('[data-cmd]').forEach(btn => {
     btn.addEventListener('mousedown', (e) => {
       e.preventDefault();
       editor.focus();
       document.execCommand(btn.dataset.cmd!, false);
+    });
+  });
+
+  toolbar?.querySelector<HTMLButtonElement>('[data-ref-insert]')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    // Save cursor position before the picker modal steals focus
+    const sel = window.getSelection();
+    const savedRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
+
+    openRefPickerModal((html) => {
+      // Restore cursor and insert inline HTML
+      const sel2 = window.getSelection();
+      sel2?.removeAllRanges();
+      if (savedRange) sel2?.addRange(savedRange);
+      else editor.focus();
+      document.execCommand('insertHTML', false, html);
     });
   });
 }

@@ -11,6 +11,7 @@
     "@astrojs/tailwind": "^6.0.2",
     "astro": "^5.0.0",
     "daisyui": "^4.12.24",
+    "lucide": "^1.18.0",
     "sass": "^1.99.0",
     "tailwindcss": "^3.4.19"
   },

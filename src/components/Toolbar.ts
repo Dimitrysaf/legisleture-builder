@@ -1,5 +1,6 @@
 import { getAllTemplates } from '../templates/registry';
 import type { Template } from '../templates/types';
+import { icon, refreshIcons } from '../utils/icons';
 
 const CATEGORIES = [
   { id: 'structure', label: 'Δομή' },
@@ -19,7 +20,9 @@ export function initToolbar(
   container.innerHTML = `
     <div class="flex items-center justify-between px-4 py-3 border-b border-base-300">
       <span class="font-semibold text-sm tracking-wide text-base-content">Templates</span>
-      <label for="nb-drawer-toggle" class="btn btn-ghost btn-xs btn-circle lg:hidden">✕</label>
+      <label for="nb-drawer-toggle" class="btn btn-ghost btn-xs btn-circle lg:hidden">
+        ${icon('x', 'w-3.5 h-3.5')}
+      </label>
     </div>
     <div class="px-3 py-2">
       <input
@@ -31,13 +34,14 @@ export function initToolbar(
     </div>
     <div class="flex-1 overflow-y-auto px-3 pb-3" id="nb-template-list"></div>
     <div class="p-3 border-t border-base-300">
-      <button id="nb-new-template-btn" class="btn btn-outline btn-primary btn-sm w-full gap-1">
-        <span class="text-base leading-none">+</span> Νέο Template
+      <button id="nb-new-template-btn" class="btn btn-outline btn-primary btn-sm w-full gap-1.5">
+        ${icon('plus-circle', 'w-4 h-4')} Νέο Template
       </button>
     </div>
   `;
 
   renderList('', onSelect);
+  refreshIcons();
 
   document.getElementById('nb-template-search')?.addEventListener('input', (e) => {
     renderList((e.target as HTMLInputElement).value.toLowerCase().trim(), onSelect);
@@ -85,21 +89,22 @@ function renderList(search: string, onSelect: OnSelectFn): void {
     }
     container.appendChild(section);
   }
+
+  refreshIcons();
 }
 
 function makeCard(t: Template, onSelect: OnSelectFn): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = [
-    'flex flex-col items-center justify-center gap-1',
+    'flex flex-col items-center justify-center gap-1.5',
     'rounded-lg border border-base-300 bg-base-100 px-2 py-3',
     'hover:border-primary hover:bg-primary hover:text-primary-content',
     'active:scale-95 transition-all duration-100 cursor-pointer',
-    'group',
   ].join(' ');
   btn.title = t.description ?? t.name;
   btn.innerHTML = `
-    <span class="text-2xl leading-none pointer-events-none">${t.icon}</span>
+    <span class="pointer-events-none">${icon(t.icon, 'w-5 h-5')}</span>
     <span class="text-[11px] font-medium leading-tight text-center pointer-events-none">${t.name}</span>
     ${t.isCustom ? '<span class="badge badge-xs badge-secondary pointer-events-none">custom</span>' : ''}
   `;

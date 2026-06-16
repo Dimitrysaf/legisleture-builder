@@ -1,5 +1,6 @@
 import type { Template, TemplateField, TemplateCategory, FieldType } from '../templates/types';
 import { saveCustomTemplate, deleteCustomTemplate } from '../templates/registry';
+import { icon, refreshIcons, ICON_OPTIONS } from '../utils/icons';
 
 type OnSaveFn = (template: Template) => void;
 
@@ -43,24 +44,31 @@ function render(): void {
   _modal.innerHTML = `
     <div class="modal-box w-11/12 max-w-3xl font-sans overflow-y-auto max-h-[90vh]">
       <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3">✕</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3">${icon('x', 'w-4 h-4')}</button>
       </form>
 
       <h3 class="font-bold text-lg mb-5">${e ? 'Επεξεργασία' : 'Δημιουργία'} Custom Template</h3>
 
       <!-- Basic info -->
-      <div class="grid grid-cols-[56px_1fr] gap-3 mb-4">
-        <div class="form-control">
-          <label class="label pb-1"><span class="label-text font-medium text-sm">Εικονίδιο</span></label>
-          <input id="nb-ctm-icon" type="text" maxlength="4"
-            class="input input-bordered text-center text-xl w-full"
-            value="${e?.icon ?? '📄'}" placeholder="📄" />
+      <div class="form-control mb-4">
+        <label class="label pb-1"><span class="label-text font-medium text-sm">Όνομα template <span class="text-error">*</span></span></label>
+        <input id="nb-ctm-name" type="text" class="input input-bordered w-full"
+          value="${escHtml(e?.name ?? '')}" placeholder="Π.χ. Ορισμός" />
+      </div>
+
+      <!-- Icon picker -->
+      <div class="form-control mb-4">
+        <label class="label pb-1"><span class="label-text font-medium text-sm">Εικονίδιο</span></label>
+        <div class="flex flex-wrap gap-1.5" id="nb-ctm-icon-grid">
+          ${ICON_OPTIONS.map(opt => `
+            <button type="button"
+              class="nb-icon-pick btn btn-sm btn-ghost border ${e?.icon === opt.name ? 'border-primary bg-primary/10' : 'border-base-300'} p-1.5 w-9 h-9"
+              data-icon-name="${opt.name}" title="${opt.label}">
+              ${icon(opt.name, 'w-4 h-4')}
+            </button>
+          `).join('')}
         </div>
-        <div class="form-control">
-          <label class="label pb-1"><span class="label-text font-medium text-sm">Όνομα template <span class="text-error">*</span></span></label>
-          <input id="nb-ctm-name" type="text" class="input input-bordered w-full"
-            value="${escHtml(e?.name ?? '')}" placeholder="Π.χ. Ορισμός" />
-        </div>
+        <input type="hidden" id="nb-ctm-icon" value="${e?.icon ?? 'file-text'}" />
       </div>
 
       <div class="grid grid-cols-2 gap-3 mb-4">
@@ -83,8 +91,8 @@ function render(): void {
         ${_fields.map((f, i) => renderFieldRow(f, i)).join('')}
       </div>
       <button type="button" id="nb-ctm-add-field"
-        class="btn btn-outline btn-xs gap-1 mb-5">
-        <span>+</span> Προσθήκη πεδίου
+        class="btn btn-outline btn-xs gap-1.5 mb-5">
+        ${icon('plus', 'w-3.5 h-3.5')} Προσθήκη πεδίου
       </button>
 
       <!-- Template string -->
@@ -103,16 +111,16 @@ function render(): void {
       >${escHtml(storedStr)}</textarea>
 
       <!-- Preview -->
-      <button type="button" id="nb-ctm-preview-btn" class="btn btn-ghost btn-xs gap-1 mb-1">
-        👁 Προεπισκόπηση
+      <button type="button" id="nb-ctm-preview-btn" class="btn btn-ghost btn-xs gap-1.5 mb-1">
+        ${icon('eye', 'w-3.5 h-3.5')} Προεπισκόπηση
       </button>
       <div id="nb-ctm-preview" class="hidden border border-dashed border-base-300 rounded-lg p-3 text-sm font-serif bg-white mb-4"></div>
 
       <!-- Delete (only when editing) -->
       ${e?.isCustom ? `
         <div class="divider"></div>
-        <button type="button" id="nb-ctm-delete" class="btn btn-error btn-outline btn-sm gap-1">
-          🗑 Διαγραφή template
+        <button type="button" id="nb-ctm-delete" class="btn btn-error btn-outline btn-sm gap-1.5">
+          ${icon('trash-2', 'w-4 h-4')} Διαγραφή template
         </button>
       ` : ''}
 
@@ -127,6 +135,7 @@ function render(): void {
   `;
 
   bindEvents();
+  refreshIcons();
 }
 
 function renderFieldRow(f: DraftField, i: number): string {
@@ -156,6 +165,21 @@ function renderFieldRow(f: DraftField, i: number): string {
 
 function bindEvents(): void {
   if (!_modal) return;
+
+  // Icon picker grid
+  _modal.querySelectorAll<HTMLButtonElement>('.nb-icon-pick').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.iconName!;
+      const hidden = document.getElementById('nb-ctm-icon') as HTMLInputElement;
+      hidden.value = name;
+      _modal!.querySelectorAll('.nb-icon-pick').forEach(b => {
+        b.classList.remove('border-primary', 'bg-primary/10');
+        b.classList.add('border-base-300');
+      });
+      btn.classList.remove('border-base-300');
+      btn.classList.add('border-primary', 'bg-primary/10');
+    });
+  });
 
   document.getElementById('nb-ctm-add-field')?.addEventListener('click', () => {
     syncFields();
@@ -231,7 +255,7 @@ function saveTemplate(): boolean {
   if (!_modal) return false;
 
   const name = (document.getElementById('nb-ctm-name') as HTMLInputElement).value.trim();
-  const icon = (document.getElementById('nb-ctm-icon') as HTMLInputElement).value.trim() || '📄';
+  const iconName = (document.getElementById('nb-ctm-icon') as HTMLInputElement).value.trim() || 'file-text';
   const category = (document.getElementById('nb-ctm-category') as HTMLSelectElement).value as TemplateCategory;
   const description = (document.getElementById('nb-ctm-desc') as HTMLInputElement).value.trim();
   const templateStr = (document.getElementById('nb-ctm-template-str') as HTMLTextAreaElement).value;
@@ -249,7 +273,7 @@ function saveTemplate(): boolean {
   }));
 
   const id = _editing?.id ?? `custom_${slugify(name)}_${Date.now()}`;
-  const template: Template = { id, name, icon, category, description, fields, render: () => '', isCustom: true };
+  const template: Template = { id, name, icon: iconName, category, description, fields, render: () => '', isCustom: true };
 
   saveCustomTemplate(template, templateStr);
   _modal.close();

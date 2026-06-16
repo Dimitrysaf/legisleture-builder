@@ -30,38 +30,53 @@
 
 .nb-block-wrapper {
   position: relative;
+  border-radius: 2px;
+  transition: outline 0.1s;
 
-  &:hover .nb-block-actions { opacity: 1; }
+  &:hover {
+    outline: 2px solid #003476;
+    outline-offset: 2px;
+
+    .nb-block-actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
 }
 
 .nb-block-actions {
   position: absolute;
-  top: 2px;
-  right: -72px;
+  top: 4px;
+  right: 4px;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  gap: 2px;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.15s;
-  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  z-index: 10;
 }
 
 .nb-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #ffffff;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
   cursor: pointer;
-  font-size: 13px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: background 0.1s;
+  color: #374151;
+  transition: background 0.1s, color 0.1s;
 
   &:hover { background: #f3f4f6; }
-  &--delete:hover { background: #fee2e2; }
+  &--delete:hover { background: #fee2e2; color: #dc2626; }
 }
 
 /* ══════════════════════════════════════════════════
@@ -70,30 +85,53 @@
 
 .nb-block { padding: 4px 0; }
 
-/* --- Chapter heading --- */
+/* --- Part (Μέρος) --- */
+.nb-block--part { margin: 40px 0 28px; }
+
+.nb-part-heading {
+  font-size: 14pt;
+  font-weight: 700;
+  text-align: left;
+  margin: 0;
+  padding: 10px 0;
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+}
+
+/* --- Chapter (Κεφάλαιο) --- */
 .nb-block--chapter { margin: 28px 0 20px; }
 
 .nb-chapter-heading {
   font-size: 12.5pt;
   font-weight: 700;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-align: left;
+  margin: 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid currentColor;
+}
+
+/* --- Section (Τμήμα) --- */
+.nb-block--section { margin: 22px 0 14px; }
+
+.nb-section-heading {
+  font-size: 12pt;
+  font-weight: 700;
+  text-align: left;
   margin: 0;
 }
 
-/* --- Article --- */
+/* --- Article (Άρθρο) --- */
 .nb-block--article { margin: 20px 0; }
 
 .nb-article-heading {
-  font-size: 12pt;
+  font-size: 11.5pt;
   font-weight: 700;
-  text-align: center;
+  text-align: left;
   margin: 0 0 8px;
 }
 
 .nb-article-body {
-  text-align: justify;
+  text-align: left;
 
   p { margin: 4px 0; }
   ol, ul { margin: 4px 0 4px 20px; }
@@ -103,7 +141,7 @@
 .nb-block--paragraph { margin: 2px 0; }
 
 .nb-paragraph {
-  text-align: justify;
+  text-align: left;
   margin: 0;
 }
 
@@ -116,7 +154,7 @@
 
 .nb-preamble {
   font-style: italic;
-  text-align: justify;
+  text-align: left;
 
   p { margin: 4px 0; }
 }
@@ -147,10 +185,32 @@
 .nb-note-icon { flex-shrink: 0; }
 .nb-note-text { color: #713f12; }
 
+/* ══════════════════════════════════════════════════
+   INLINE REFERENCES
+   ══════════════════════════════════════════════════ */
+
+.nb-ref {
+  color: #003476;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  cursor: default;
+  font-style: normal;
+}
+
 /* --- Custom --- */
 .nb-block--custom {
   margin: 8px 0;
   font-family: 'Noto Serif', serif;
+}
+
+/* ══════════════════════════════════════════════════
+   CONTAINER ZONES – invisible, no editing UI on doc
+   ══════════════════════════════════════════════════ */
+
+.nb-container-zone {
+  /* The zone itself is transparent – no borders, no placeholders */
+  min-height: 4px;
 }
 
 /* ══════════════════════════════════════════════════
@@ -185,4 +245,6 @@
   .nb-block--note,
   .nb-block-actions,
   .drawer-side { display: none !important; }
+
+  .nb-container-zone { min-height: 0 !important; }
 }

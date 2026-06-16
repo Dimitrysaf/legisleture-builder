@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'textarea' | 'rich-text' | 'number';
+export type FieldType = 'text' | 'textarea' | 'rich-text' | 'number' | 'container';
 
 export type TemplateCategory = 'structure' | 'content' | 'reference' | 'custom';
 

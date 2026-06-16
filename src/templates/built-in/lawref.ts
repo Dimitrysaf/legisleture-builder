@@ -3,7 +3,7 @@ import type { Template } from '../types';
 export const lawRefTemplate: Template = {
   id: 'lawref',
   name: 'Παραπομπή',
-  icon: '⚖️',
+  icon: 'scale',
   description: 'Αναφορά σε υφιστάμενο νόμο ή διάταξη',
   category: 'reference',
   fields: [

@@ -1,6 +1,8 @@
 import type { Template, StoredCustomTemplate } from './types';
-import { articleTemplate } from './built-in/article';
+import { partTemplate } from './built-in/part';
 import { chapterTemplate } from './built-in/chapter';
+import { sectionTemplate } from './built-in/section';
+import { articleTemplate } from './built-in/article';
 import { paragraphTemplate } from './built-in/paragraph';
 import { preambleTemplate } from './built-in/preamble';
 import { lawRefTemplate } from './built-in/lawref';
@@ -9,8 +11,10 @@ import { noteTemplate } from './built-in/note';
 const STORAGE_KEY = 'nb_custom_templates';
 
 const registry = new Map<string, Template>([
-  ['article', articleTemplate],
+  ['part', partTemplate],
   ['chapter', chapterTemplate],
+  ['section', sectionTemplate],
+  ['article', articleTemplate],
   ['paragraph', paragraphTemplate],
   ['preamble', preambleTemplate],
   ['lawref', lawRefTemplate],

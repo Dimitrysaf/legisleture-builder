@@ -3,7 +3,7 @@ import type { Template } from '../types';
 export const preambleTemplate: Template = {
   id: 'preamble',
   name: 'Προοίμιο',
-  icon: '📜',
+  icon: 'scroll',
   description: 'Εισαγωγικές διατάξεις νόμου (αιτιολογική έκθεση)',
   category: 'structure',
   fields: [

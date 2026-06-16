@@ -3,7 +3,7 @@ import type { Template } from '../types';
 export const paragraphTemplate: Template = {
   id: 'paragraph',
   name: 'Παράγραφος',
-  icon: '¶',
+  icon: 'align-left',
   description: 'Αριθμημένη παράγραφος μέσα σε άρθρο',
   category: 'content',
   fields: [
