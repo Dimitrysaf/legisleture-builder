@@ -1,16 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import BuilderIntro from '../components/BuilderIntro.astro';
 import Toolbar from '../components/Toolbar.astro';
 import PageHeader from '../components/PageHeader.astro';
 import ModalClear from '../components/ModalClear.astro';
-import ModalBlockAction from '../components/ModalBlockAction.astro';
 import ModalLawNumber from '../components/ModalLawNumber.astro';
 ---
 
 <Layout title="Συντάκτης Νόμου – Legisleture Builder">
   <div id="nomos-builder" class="nb-builder-page">
-    <BuilderIntro />
     <Toolbar />
 
     <div class="nb-canvas">
@@ -20,7 +17,6 @@ import ModalLawNumber from '../components/ModalLawNumber.astro';
     </div>
 
     <ModalClear />
-    <ModalBlockAction />
     <ModalLawNumber />
   </div>
 </Layout>
