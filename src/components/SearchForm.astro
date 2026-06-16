@@ -1,0 +1,46 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  placeholder?: string;
+  onWhite?: boolean;
+}
+const { id, label, placeholder = '', onWhite = false } = Astro.props;
+---
+<form action="/search" method="get" role="search">
+  <div class:list={[
+    'gem-c-search', 'gem-c-search--large', 'gem-c-search--separate-label',
+    onWhite ? 'gem-c-search--on-white govuk-!-margin-bottom-0' : 'gem-c-search--on-govuk-blue',
+  ]}>
+    <label
+      for={id}
+      class:list={[
+        'govuk-label',
+        onWhite ? 'govuk-label--m' : 'govuk-label--s gem-c-search__label gem-c-search__label--white govuk-!-margin-bottom-3',
+      ]}
+    >
+      {label}
+    </label>
+    <div class="gem-c-search__item-wrapper">
+      <div class="gem-c-search__item gem-c-search__input-wrapper">
+        <input
+          class:list={['gem-c-search__item', 'gem-c-search__input', onWhite && 'gem-c-search__input--on-white']}
+          id={id}
+          name="keywords"
+          type="search"
+          autocomplete="off"
+          placeholder={placeholder}
+        />
+      </div>
+      <div class="gem-c-search__item gem-c-search__submit-wrapper">
+        <button class="gem-c-search__submit" type="submit" enterkeyhint="search">
+          Αναζήτηση
+          <svg class="gem-c-search__icon" width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <circle cx="12.0161" cy="11.0161" r="8.51613" stroke="currentColor" stroke-width="3"></circle>
+            <line x1="17.8668" y1="17.3587" x2="26.4475" y2="25.9393" stroke="currentColor" stroke-width="3"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</form>

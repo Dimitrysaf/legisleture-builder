@@ -1,0 +1,1596 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Συντάκτης Νόμου – Legisleture Builder">
+
+  <!-- ══════════════════════════════════════════════════
+       HORIZONTAL TOOLBAR  (full-width, no container)
+       ══════════════════════════════════════════════════ -->
+  <div id="nomos-builder" class="nb-builder-page">
+    <section class="nb-builder-intro">
+      <p class="govuk-caption-l">Legisleture Builder</p>
+      <h1 class="govuk-heading-xl">Συντάκτης Νόμου</h1>
+      <p class="govuk-body">Δημιουργήστε, οργανώστε και εκτυπώστε νομοθετικό κείμενο με gov.uk style.</p>
+    </section>
+
+    <div class="nb-toolbar" role="toolbar" aria-label="Εργαλειοθήκη">
+      <div class="nb-toolbar-blocks">
+        <button class="nb-tool" data-type="arithmos-nomou">Αριθμός Νόμου</button>
+        <button class="nb-tool" data-type="prooimio">Προοίμιο</button>
+        <button class="nb-tool" data-type="aitiologiki">Αιτιολογική Σκέψη</button>
+        <span class="nb-sep"></span>
+        <button class="nb-tool" data-type="meros">Μέρος</button>
+        <button class="nb-tool" data-type="kefalaio">Κεφάλαιο</button>
+        <button class="nb-tool" data-type="tmima">Τμήμα</button>
+        <button class="nb-tool" data-type="arthro">Άρθρο</button>
+        <span class="nb-sep"></span>
+        <button class="nb-tool" data-type="ermineytiki">Ερμηνευτική Δήλωση</button>
+        <button class="nb-tool" data-type="metabatikes">Μεταβατικές Διατάξεις</button>
+        <button class="nb-tool" data-type="telikes">Τελικές Διατάξεις</button>
+      </div>
+      <div class="nb-toolbar-actions">
+        <button class="nb-tool nb-tool--print" id="btn-print">⎙ Εκτύπωση</button>
+        <button class="nb-tool nb-tool--clear" id="btn-clear">Εκκαθάριση</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         DOCUMENT CANVAS
+         ══════════════════════════════════════════════════ -->
+    <div class="nb-canvas">
+      <div class="nb-paper" id="nb-paper">
+        <header class="nb-page-header">
+          <div class="nb-page-header__coat">
+            <img src="/Coat_of_arms_of_Greece.svg" alt="Εθνόσημο της Ελληνικής Δημοκρατίας" class="nb-coat-of-arms" />
+          </div>
+        </header>
+    </div>
+
+    <div class="nb-modal-backdrop nb-hidden" id="nb-clear-modal" role="dialog" aria-modal="true" aria-labelledby="nb-clear-modal-title">
+      <div class="nb-modal" role="document">
+        <div class="nb-modal-content">
+          <h2 class="govuk-heading-m" id="nb-clear-modal-title">Διαγραφή εγγράφου</h2>
+          <p class="govuk-body">Θέλετε να διαγραφεί ολόκληρο το έγγραφο;</p>
+          <div class="nb-modal-actions">
+            <button class="govuk-button govuk-button--secondary" id="nb-clear-confirm" type="button">Διαγραφή</button>
+            <button class="govuk-button govuk-button--secondary" id="nb-clear-cancel" type="button">Ακύρωση</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nb-modal-backdrop nb-hidden" id="nb-block-action-modal" role="dialog" aria-modal="true" aria-labelledby="nb-block-action-modal-title">
+      <div class="nb-modal" role="document">
+        <div class="nb-modal-content">
+          <h2 class="govuk-heading-m" id="nb-block-action-modal-title">Ενέργειες μπλοκ</h2>
+          <p class="govuk-body" id="nb-block-action-modal-label">Επιλέξτε ενέργεια για αυτό το μπλοκ.</p>
+          <div class="nb-modal-actions">
+            <button class="govuk-button" id="nb-block-edit" type="button">Επεξεργασία</button>
+            <button class="govuk-button govuk-button--secondary" id="nb-block-up" type="button">Μετακίνηση επάνω</button>
+            <button class="govuk-button govuk-button--secondary" id="nb-block-down" type="button">Μετακίνηση κάτω</button>
+            <button class="govuk-button govuk-button--secondary" id="nb-block-delete" type="button">Διαγραφή</button>
+          </div>
+          <div class="nb-modal-actions nb-modal-actions--bottom">
+            <button class="govuk-button govuk-button--secondary" id="nb-block-action-cancel" type="button">Ακύρωση</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nb-modal-backdrop nb-hidden" id="nb-law-number-modal" role="dialog" aria-modal="true" aria-labelledby="nb-law-number-modal-title">
+      <div class="nb-modal" role="document">
+        <div class="nb-modal-content">
+          <h2 class="govuk-heading-m" id="nb-law-number-modal-title">Αριθμός νόμου</h2>
+          <p class="govuk-body">Εισάγετε τα στοιχεία του νόμου για την εμφάνιση στην A4 σελίδα.</p>
+          <div class="nb-modal-field">
+            <label class="govuk-label" for="nb-law-number">Νόμος υπ' αριθ.</label>
+            <input class="govuk-input" id="nb-law-number" type="text" />
+          </div>
+          <div class="nb-modal-field">
+            <label class="govuk-label" for="nb-law-title">Τίτλος</label>
+            <input class="govuk-input" id="nb-law-title" type="text" />
+          </div>
+          <div class="nb-modal-field">
+            <label class="govuk-label" for="nb-law-subtitle">Υπότιτλος</label>
+            <input class="govuk-input" id="nb-law-subtitle" type="text" />
+          </div>
+          <div class="nb-modal-field">
+            <label class="govuk-label" for="nb-law-date">ΦΕΚ / Ημερομηνία</label>
+            <input class="govuk-input" id="nb-law-date" type="text" />
+          </div>
+          <div class="nb-modal-actions">
+            <button class="govuk-button" id="nb-law-save" type="button">Αποθήκευση</button>
+            <button class="govuk-button govuk-button--secondary" id="nb-law-cancel" type="button">Ακύρωση</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nb-modal-backdrop nb-hidden" id="nb-block-edit-modal" role="dialog" aria-modal="true" aria-labelledby="nb-block-edit-modal-title">
+      <div class="nb-modal" role="document">
+        <div class="nb-modal-content">
+          <h2 class="govuk-heading-m" id="nb-block-edit-modal-title">Επεξεργασία μπλοκ</h2>
+          <p class="govuk-body" id="nb-block-edit-modal-desc">Επεξεργαστείτε τις ιδιότητες αυτού του μπλοκ μέσω των πεδίων.</p>
+          <div class="nb-modal-field" id="nb-block-edit-number-field">
+            <label class="govuk-label" for="nb-block-edit-number">Αριθμός / Ταυτότητα</label>
+            <input class="govuk-input" id="nb-block-edit-number" type="text" />
+          </div>
+          <div class="nb-modal-field" id="nb-block-edit-title-field">
+            <label class="govuk-label" for="nb-block-edit-title">Τίτλος / Όνομα</label>
+            <input class="govuk-input" id="nb-block-edit-title" type="text" />
+          </div>
+          <div class="nb-modal-field" id="nb-block-edit-body-field">
+            <label class="govuk-label" for="nb-block-edit-body">Κείμενο μπλοκ</label>
+            <textarea class="govuk-textarea" id="nb-block-edit-body" rows="6"></textarea>
+          </div>
+          <div class="nb-modal-actions">
+            <button class="govuk-button" id="nb-block-edit-save" type="button">Αποθήκευση</button>
+            <button class="govuk-button govuk-button--secondary" id="nb-block-edit-cancel" type="button">Ακύρωση</button>
+          </div>
+        </div>
+      </div>
+    </div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,opsz,wght@0,6..18,400;0,6..18,700;1,6..18,400;1,6..18,700&display=swap');
+
+  /* ── Reset main-wrapper top padding so toolbar hugs the header ── */
+  .govuk-main-wrapper { padding-top: 0 !important; }
+
+  /* ══════════════════════════════════════════════════
+     TOOLBAR
+     ══════════════════════════════════════════════════ */
+
+  .nb-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: #003476;
+    padding: 6px 12px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nb-toolbar-blocks {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .nb-toolbar-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .nb-tool {
+    background: rgba(255,255,255,0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 2px;
+    padding: 5px 10px;
+    font-size: 13px;
+    font-family: 'Roboto', system-ui, sans-serif;
+    cursor: pointer;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .nb-tool:hover { background: rgba(255,255,255,0.24); }
+
+  .nb-tool--print { background: #1d70b8; border-color: #1d70b8; }
+  .nb-tool--print:hover { background: #003078; border-color: #003078; }
+
+  .nb-tool--clear { background: #d4351c; border-color: #d4351c; }
+  .nb-tool--clear:hover { background: #aa2a16; border-color: #aa2a16; }
+
+  .nb-sep {
+    display: inline-block;
+    width: 1px;
+    height: 22px;
+    background: rgba(255,255,255,0.3);
+    margin: 0 2px;
+    align-self: center;
+  }
+
+  /* ══════════════════════════════════════════════════
+     CANVAS & PAPER
+     ══════════════════════════════════════════════════ */
+
+  .nb-canvas {
+    background: #d8d8d8;
+    padding: 32px 20px 48px;
+    min-height: calc(100vh - 140px);
+  }
+
+  .nb-page-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: flex-start;
+    padding: 0;
+    z-index: 1;
+    width: 100%;
+    pointer-events: none;
+  }
+
+  .nb-page-header__coat {
+    display: flex;
+    align-items: flex-start;
+    margin: 10mm 0 0 10mm;
+    pointer-events: auto;
+  }
+
+  .nb-coat-of-arms {
+    width: 60px;
+    height: auto;
+    display: block;
+  }
+
+  .nb-builder-intro {
+    margin: 0 0 16px;
+    padding: 0 12px;
+  }
+
+  .nb-builder-intro h1,
+  .nb-builder-intro p {
+    margin: 0;
+  }
+
+  .nb-builder-intro p + p {
+    margin-top: 0.8em;
+  }
+
+  @media print {
+    .nb-builder-intro {
+      display: none;
+    }
+  }
+
+  .nb-paper {
+    width: min(210mm, 100%);
+    max-width: 760px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 70px 88px 88px;
+    font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
+    font-size: 11.5pt;
+    line-height: 1.65;
+    color: #0b0c0c;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    min-height: 297mm;
+    position: relative;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+  }
+
+  .nb-builder-page {
+    width: 100%;
+  }
+
+  .nb-block-menu-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #b1b4b6;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #0b0c0c;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+    z-index: 10;
+  }
+
+  .nb-block-menu-btn:hover,
+  .nb-block-menu-btn:focus {
+    transform: translateY(-1px);
+    border-color: #003476;
+    outline: none;
+  }
+
+  .nb-block:hover .nb-block-menu-btn,
+  .nb-block-menu-btn:focus {
+    opacity: 1;
+  }
+
+  .nb-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 300;
+  }
+
+  .nb-modal {
+    background: #ffffff;
+    border: 1px solid #b1b4b6;
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    width: min(100%, 480px);
+  }
+
+  .nb-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .nb-modal-actions--bottom {
+    justify-content: flex-start;
+    margin-top: 12px;
+  }
+
+  .nb-modal-backdrop.nb-hidden { display: none !important; }
+
+  .nb-modal {
+    background: #ffffff;
+    border: 1px solid #b1b4b6;
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    width: min(100%, 420px);
+  }
+
+  .nb-modal-content {
+    padding: 24px;
+  }
+
+  .nb-modal-field {
+    margin-top: 18px;
+  }
+
+  .nb-modal-field label {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .nb-modal-field .govuk-input {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .nb-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .nb-modal-backdrop.nb-hidden { display: none !important; }
+
+  .nb-empty {
+    text-align: center;
+    color: #767676;
+    padding: 48px 0;
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-size: 14px;
+  }
+
+  /* ══════════════════════════════════════════════════
+     BLOCK BASE
+     ══════════════════════════════════════════════════ */
+
+  .nb-block {
+    position: relative;
+    margin-bottom: 2px;
+  }
+
+  .nb-block:hover > .nb-block-ctrl-bar { opacity: 1; pointer-events: auto; }
+  .nb-block:hover { outline: 1px dashed #adb5bd; outline-offset: 3px; }
+
+  /* ── Block control bar (↑ ↓ ✕) ── */
+  .nb-block-ctrl-bar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s;
+    z-index: 30;
+    background: #fff;
+    border: 1px solid #b1b4b6;
+    padding: 2px;
+    border-radius: 2px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.14);
+  }
+
+  .nb-ctrl {
+    width: 26px; height: 22px;
+    border: 1px solid #b1b4b6;
+    background: #f3f2f1;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px; padding: 0; line-height: 1; color: #0b0c0c;
+  }
+  .nb-ctrl:hover { background: #dee0e2; border-color: #0b0c0c; }
+  .nb-ctrl-del { color: #d4351c; border-color: #f4cdc6; }
+  .nb-ctrl-del:hover { background: #d4351c; color: #fff; border-color: #d4351c; }
+
+  /* ── Contenteditable ── */
+  [contenteditable] {
+    outline: none;
+    min-height: 1.2em;
+    cursor: text;
+  }
+  [contenteditable]:focus { outline: 3px solid #ffdd00; outline-offset: 2px; }
+  [contenteditable]:empty::before {
+    content: attr(data-ph);
+    color: #bbb;
+    pointer-events: none;
+    font-style: italic;
+  }
+
+  /* ── Toggle / metadata controls (only visible in editor, hidden in print) ── */
+  .nb-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 4px 6px 5px;
+    background: #f0f4ff;
+    border: 1px solid #c5d0ea;
+    border-radius: 2px;
+    margin-bottom: 6px;
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-size: 11.5px;
+    color: #003476;
+  }
+
+  .nb-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .nb-toggle-label input[type="checkbox"] { cursor: pointer; margin: 0; }
+
+  .nb-meta input[type="text"] {
+    border: 1px solid #b1b4b6;
+    padding: 2px 6px;
+    font-size: 11.5px;
+    font-family: 'Roboto', system-ui, sans-serif;
+    border-radius: 2px;
+    width: 90px;
+  }
+
+  .nb-uuid {
+    font-size: 10px;
+    color: #767676;
+    font-family: monospace;
+    margin-right: 6px;
+  }
+
+  /* ══════════════════════════════════════════════════
+     BLOCK: ΑΡΙΘΜΟΣ ΝΟΜΟΥ
+     ══════════════════════════════════════════════════ */
+
+  .nb-block--arithmos-nomou {
+    text-align: center;
+    text-transform: uppercase;
+    padding-bottom: 1.4em;
+    margin-bottom: 1.8em;
+    border-bottom: 1.5px solid #0b0c0c;
+  }
+
+  .nb-nomou-num {
+    font-size: 12pt; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 0.55em;
+  }
+
+  .nb-nomou-title {
+    font-size: 13.5pt; font-weight: 700;
+    line-height: 1.35; margin-bottom: 0.5em;
+  }
+
+  .nb-nomou-subtitle {
+    font-size: 10.5pt; font-style: italic;
+    color: #505a5f; margin-bottom: 0.4em;
+    min-height: 1.2em;
+  }
+
+  .nb-nomou-date { font-size: 10pt; color: #505a5f; }
+
+  /* ══════════════════════════════════════════════════
+     BLOCK: ΠΡΟΟΙΜΙΟ
+     ══════════════════════════════════════════════════ */
+
+  .nb-block--prooimio { margin-bottom: 1.4em; }
+
+  .nb-section-tag {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-size: 8.5pt; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #505a5f; margin-bottom: 0.35em;
+  }
+
+  .nb-section-tag.govuk-heading-s {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+  }
+
+  .nb-prooimio-body {
+    font-style: italic;
+    text-align: justify; hyphens: auto;
+  }
+
+  /* ══════════════════════════════════════════════════
+     BLOCK: ΑΙΤΙΟΛΟΓΙΚΗ ΣΚΕΨΗ
+     ══════════════════════════════════════════════════ */
+
+  .nb-block--aitiologiki {
+    display: flex; gap: 0.55em;
+    margin-bottom: 0.55em;
+    padding-left: 0.4em;
+  }
+
+  .nb-ait-num {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-weight: 700; font-size: 10pt;
+    flex-shrink: 0; min-width: 1.8em; padding-top: 0.05em;
+  }
+
+  .nb-ait-body {
+    font-style: italic; font-size: 10.5pt;
+    text-align: justify; hyphens: auto;
+  }
+
+  /* ══════════════════════════════════════════════════
+     BLOCKS: ΜΕΡΟΣ / ΚΕΦΑΛΑΙΟ / ΤΜΗΜΑ
+     (shared .nb-struct-* styles)
+     ══════════════════════════════════════════════════ */
+
+  .nb-block--meros,
+  .nb-block--kefalaio,
+  .nb-block--tmima {
+    text-align: center;
+    margin-top: 2.2em; margin-bottom: 0.7em;
+  }
+
+  .nb-block {
+    position: relative;
+    margin-bottom: 2rem;
+    padding: 22px;
+    border: 1px solid #dfe1e5;
+    border-radius: 6px;
+    background: #ffffff;
+  }
+
+  .nb-block:hover {
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.08);
+  }
+
+  .nb-struct-display {
+    font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .nb-struct-display.govuk-heading-s {
+    margin-top: 0;
+    margin-bottom: 0.25em;
+  }
+
+  .nb-block--meros    .nb-struct-display { font-size: 13pt; }
+  .nb-block--kefalaio .nb-struct-display { font-size: 12pt; }
+  .nb-block--tmima    .nb-struct-display { font-size: 11pt; }
+
+  .nb-struct-name-val { font-weight: 700; display: block; margin-top: 0.1em; }
+  .nb-block--meros    .nb-struct-name-val { font-size: 12pt; }
+  .nb-block--kefalaio .nb-struct-name-val { font-size: 11pt; }
+  .nb-block--tmima    .nb-struct-name-val { font-size: 10.5pt; }
+
+  /* inline text input inside meta bar for struct name */
+  .nb-struct-name-ce {
+    min-width: 120px;
+    border-bottom: 1px dashed #003476;
+    display: inline-block;
+  }
+
+  /* ══════════════════════════════════════════════════
+     BLOCK: ΑΡΘΡΟ
+     ══════════════════════════════════════════════════ */
+
+  .nb-block--arthro {
+    margin-top: 1.8em; margin-bottom: 0.4em;
+  }
+
+  .nb-arthro-display { text-align: center; margin-bottom: 0.45em; }
+
+  .nb-arthro-num-label {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-weight: 700; font-size: 11pt;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  .nb-arthro-num-label.govuk-heading-s {
+    margin-top: 0;
+    margin-bottom: 0.3em;
+  }
+
+  .nb-arthro-title-field {
+    font-weight: 700; font-style: italic; font-size: 11pt;
+    margin-top: 0.15em; text-align: center;
+  }
+
+  /* ── Paragraphs ── */
+
+  .nb-paras-list { margin-top: 0.4em; }
+
+  .nb-para { margin-bottom: 0.35em; }
+
+  .nb-para-row {
+    display: flex; gap: 0.4em; align-items: flex-start;
+  }
+
+  .nb-para-num {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-weight: 700; flex-shrink: 0; min-width: 1.6em;
+    padding-top: 0.05em; font-size: 11pt;
+  }
+
+  .nb-para-body { text-align: justify; hyphens: auto; flex: 1; }
+
+  .nb-para-actions {
+    display: flex; gap: 2px; align-items: flex-start;
+    flex-shrink: 0; padding-top: 2px;
+    opacity: 0; pointer-events: none; transition: opacity 0.1s;
+  }
+  .nb-para:hover .nb-para-actions { opacity: 1; pointer-events: auto; }
+
+  /* ── Sub-paragraphs (α β γ) ── */
+
+  .nb-subparas-list { padding-left: 1.6em; margin-top: 0.2em; }
+
+  .nb-subpara { margin-bottom: 0.25em; }
+
+  .nb-subpara-row {
+    display: flex; gap: 0.4em; align-items: flex-start;
+  }
+
+  .nb-subpara-num {
+    font-family: 'Roboto', system-ui, sans-serif;
+    flex-shrink: 0; min-width: 2em; padding-top: 0.05em;
+    font-size: 11pt;
+  }
+
+  .nb-subpara-body { text-align: justify; hyphens: auto; flex: 1; }
+
+  .nb-subpara-actions {
+    display: flex; gap: 2px; align-items: flex-start;
+    flex-shrink: 0; padding-top: 2px;
+    opacity: 0; pointer-events: none; transition: opacity 0.1s;
+  }
+  .nb-subpara:hover .nb-subpara-actions { opacity: 1; pointer-events: auto; }
+
+  /* ── Sub-sub-paragraphs (αα ββ) ── */
+
+  .nb-subsubparas-list { padding-left: 2em; margin-top: 0.2em; }
+
+  .nb-subsubpara {
+    display: flex; gap: 0.4em; align-items: flex-start;
+    margin-bottom: 0.2em;
+  }
+
+  .nb-subsubpara-num {
+    font-family: 'Roboto', system-ui, sans-serif;
+    flex-shrink: 0; min-width: 2.4em; padding-top: 0.05em;
+    font-size: 11pt;
+  }
+
+  .nb-subsubpara-body { text-align: justify; hyphens: auto; flex: 1; }
+
+  .nb-subsubpara-actions {
+    opacity: 0; pointer-events: none; transition: opacity 0.1s; flex-shrink: 0;
+  }
+  .nb-subsubpara:hover .nb-subsubpara-actions { opacity: 1; pointer-events: auto; }
+
+  /* ── Inline add/delete buttons inside article ── */
+
+  .nb-inline-btn {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-size: 11px; color: #1d70b8;
+    background: none; border: 1px dashed #1d70b8;
+    border-radius: 2px; padding: 2px 7px; cursor: pointer;
+    margin-top: 6px; display: inline-block;
+  }
+  .nb-inline-btn:hover { background: #e8f1fb; }
+
+  .nb-inline-btn-sm {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-size: 10px; color: #1d70b8;
+    background: none; border: 1px dashed #1d70b8;
+    border-radius: 2px; padding: 1px 5px; cursor: pointer;
+  }
+  .nb-inline-btn-sm:hover { background: #e8f1fb; }
+
+  .nb-inline-del {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-size: 10px; color: #d4351c;
+    background: none; border: 1px solid #f4cdc6;
+    border-radius: 2px; padding: 1px 4px; cursor: pointer;
+  }
+  .nb-inline-del:hover { background: #d4351c; color: #fff; }
+
+  /* ── Ερμηνευτική inside article ── */
+
+  .nb-arthro-ermineytiki {
+    margin-top: 0.8em;
+    border-top: 1px dashed #c5d0ea;
+    padding-top: 0.6em;
+  }
+
+  .nb-arthro-ermineytiki .nb-meta {
+    background: none; border: none; padding: 0; margin-bottom: 0;
+  }
+
+  .nb-ermineytiki-block {
+    padding: 0.7em 1em 0.8em;
+    border-left: 3px solid #003476;
+    background: #f5f7fb;
+    margin-top: 0.4em;
+  }
+
+  .nb-ermineytiki-block-label {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-size: 8.5pt; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #003476; margin-bottom: 0.4em;
+  }
+
+  .nb-ermineytiki-block-label.govuk-heading-s {
+    margin-top: 0;
+  }
+
+  .nb-ermineytiki-body-ce {
+    font-size: 10.5pt;
+    text-align: justify; hyphens: auto;
+  }
+
+  /* ══════════════════════════════════════════════════
+     BLOCK: STANDALONE ΕΡΜΗΝΕΥΤΙΚΗ ΔΗΛΩΣΗ
+     ══════════════════════════════════════════════════ */
+
+  .nb-block--ermineytiki {
+    margin: 1.3em 0;
+    padding: 0.8em 1em 0.9em;
+    border-left: 3px solid #003476;
+    background: #f5f7fb;
+  }
+
+  /* ══════════════════════════════════════════════════
+     BLOCKS: ΜΕΤΑΒΑΤΙΚΕΣ / ΤΕΛΙΚΕΣ
+     ══════════════════════════════════════════════════ */
+
+  .nb-block--metabatikes,
+  .nb-block--telikes {
+    margin-top: 2.4em; margin-bottom: 0.9em;
+    text-align: center;
+    padding-top: 0.9em;
+    border-top: 1px solid #b1b4b6;
+  }
+
+  .nb-diataxi-label {
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-size: 11pt; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+
+  /* ══════════════════════════════════════════════════
+     UTILITY
+     ══════════════════════════════════════════════════ */
+
+  .nb-hidden { display: none !important; }
+
+  /* ══════════════════════════════════════════════════
+     PRINT
+     ══════════════════════════════════════════════════ */
+
+  @page { size: A4 portrait; margin: 20mm; }
+
+  @media print {
+    html,
+    body {
+      width: auto !important;
+      height: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    body * {
+      visibility: hidden !important;
+    }
+
+    #nomos-builder,
+    #nomos-builder * {
+      visibility: visible !important;
+    }
+
+    #nomos-builder {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+
+    .nb-toolbar,
+    .nb-meta,
+    .nb-block-ctrl-bar,
+    .nb-block-menu-btn,
+    .nb-block:hover,
+    .nb-arthro-ermineytiki > .nb-meta,
+    .nb-inline-btn,
+    .nb-inline-btn-sm,
+    .nb-inline-del,
+    .nb-para-actions,
+    .nb-subpara-actions,
+    .nb-subsubpara-actions,
+    .nb-uuid,
+    .nb-modal-backdrop {
+      display: none !important;
+    }
+
+    .nb-block:hover { outline: none !important; }
+    .nb-canvas { background: none !important; padding: 0 !important; }
+    .nb-paper {
+      box-shadow: none !important;
+      max-width: none !important;
+      width: auto !important;
+      padding: 0 !important;
+      min-height: auto !important;
+    }
+    .nb-empty { display: none !important; }
+  }
+</style>
+
+<!-- ════════════════════════════════════════════════════
+     JAVASCRIPT
+     ════════════════════════════════════════════════════ -->
+<script>
+  // ── Constants ───────────────────────────────────────
+
+  const GR  = ['α','β','γ','δ','ε','στ','ζ','η','θ','ι','ια','ιβ','ιγ','ιδ','ιε','ιστ','ιζ','ιη','ιθ','κ'];
+  const GRU = ['Α','Β','Γ','Δ','Ε','ΣΤ','Ζ','Η','Θ','Ι','ΙΑ','ΙΒ','ΙΓ','ΙΔ','ΙΕ','ΙΣΤ','ΙΖ','ΙΗ','ΙΘ','Κ'];
+  const grL  = (i: number) => (GR[i]  ?? String(i + 1)) + ')';
+  const grLL = (i: number) => { const g = GR[i] ?? String(i + 1); return g + g + ')'; };
+  const grU  = (i: number) => (GRU[i] ?? String(i + 1)) + '΄';
+
+  const paper   = document.getElementById('nb-paper') as HTMLElement;
+  let   blockSeq = 0;
+  let   pendingBlockType: string | null = null;
+
+  // ── Toolbar → add block ─────────────────────────────
+
+  document.querySelectorAll<HTMLButtonElement>('.nb-tool[data-type]').forEach(btn =>
+    btn.addEventListener('click', () => addBlock(btn.dataset.type!))
+  );
+
+  function addBlock(type: string) {
+    if (type === 'arithmos-nomou') {
+      pendingBlockType = type;
+      activeBlock = null;
+      populateLawModal(null);
+      openModal(lawNumberModal);
+      return;
+    }
+
+    document.getElementById('nb-empty')?.remove();
+    const id  = ++blockSeq;
+    const el  = makeBlockEl(type, id);
+    paper.appendChild(el);
+    renum();
+  }
+
+  // ── Build block element ─────────────────────────────
+
+  function makeBlockEl(type: string, id: number): HTMLElement {
+    const wrap = document.createElement('div');
+    wrap.className  = `nb-block nb-block--${type}`;
+    wrap.dataset.id = String(id);
+    wrap.dataset.type = type;
+
+    const menuBtn = document.createElement('button');
+    menuBtn.type = 'button';
+    menuBtn.className = 'nb-block-menu-btn';
+    menuBtn.setAttribute('aria-haspopup', 'dialog');
+    menuBtn.setAttribute('aria-label', 'Ενέργειες μπλοκ');
+    menuBtn.textContent = '⋮';
+    menuBtn.addEventListener('click', event => {
+      event.stopPropagation();
+      openBlockMenuModal(wrap);
+    });
+
+    wrap.appendChild(menuBtn);
+    wrap.appendChild(blockContent(type, id));
+    return wrap;
+  }
+
+  // ── Block content factory ───────────────────────────
+
+  function blockContent(type: string, id: number): DocumentFragment {
+    const frag = document.createDocumentFragment();
+
+    if (type === 'arithmos-nomou') {
+      frag.append(
+        ce('div', 'nb-nomou-num govuk-caption-l nb-law-number', {}, "ΝΟΜΟΣ ΥΠ' ΑΡΙΘ. ____/2025"),
+        ce('h2', 'nb-nomou-title govuk-heading-l', {}, 'ΤΙΤΛΟΣ ΝΟΜΟΥ'),
+        ce('p', 'nb-nomou-subtitle govuk-body', {}, 'ΤΡΟΠΟΠΟΙΗΣΗ / ΣΥΜΠΛΗΡΩΣΗ ΔΙΑΤΑΞΕΩΝ...'),
+        ce('p', 'nb-nomou-date govuk-body-s', {}, '(ΦΕΚ Α΄ ___/__.__.2025)')
+      );
+      return frag;
+    }
+
+    if (type === 'prooimio') {
+      frag.append(
+        ce('h2', 'nb-section-tag govuk-heading-s', {}, 'Προοίμιο'),
+        makeEditableText('div', 'nb-prooimio-body govuk-body', 'Η ΒΟΥΛΗ ΤΩΝ ΕΛΛΗΝΩΝ', 'Η ΒΟΥΛΗ ΤΩΝ ΕΛΛΗΝΩΝ...', 'Προοίμιο')
+      );
+      return frag;
+    }
+
+    if (type === 'aitiologiki') {
+      const numSpan = ce('span', 'nb-ait-num', { 'data-auto': 'aitiologiki' });
+      const body    = makeEditableText('div', 'nb-ait-body', 'Λαμβάνοντας υπόψη...', 'Λαμβάνοντας υπόψη...', 'Αιτιολογική σκέψη');
+      frag.append(numSpan, body);
+      return frag;
+    }
+
+    if (type === 'meros' || type === 'kefalaio' || type === 'tmima') {
+      frag.append(makeStructContent(type));
+      return frag;
+    }
+
+    if (type === 'arthro') {
+      frag.append(makeArthroContent(id));
+      return frag;
+    }
+
+    if (type === 'ermineytiki') {
+      frag.append(
+        ce('h2', 'nb-section-tag govuk-heading-s', {}, 'Ερμηνευτική Δήλωση'),
+        makeEditableText('div', 'nb-ermineytiki-body-ce govuk-body', 'Κείμενο ερμηνευτικής δήλωσης...', 'Κείμενο ερμηνευτικής δήλωσης...', 'Ερμηνευτική δήλωση')
+      );
+      return frag;
+    }
+
+    if (type === 'metabatikes') {
+      frag.append(ce('h2', 'nb-diataxi-label govuk-heading-s', {}, 'Μεταβατικές Διατάξεις'));
+      return frag;
+    }
+
+    if (type === 'telikes') {
+      frag.append(ce('h2', 'nb-diataxi-label govuk-heading-s', {}, 'Τελικές Διατάξεις'));
+      return frag;
+    }
+
+    return frag;
+  }
+
+  // ── Struct block (Μέρος / Κεφάλαιο / Τμήμα) ────────
+
+  const STRUCT_PREFIX: Record<string, string> = {
+    meros: 'ΜΕΡΟΣ', kefalaio: 'ΚΕΦΑΛΑΙΟ', tmima: 'ΤΜΗΜΑ'
+  };
+
+  function makeStructContent(type: string): HTMLElement {
+    const prefix = STRUCT_PREFIX[type];
+
+    // Meta bar
+    const meta = document.createElement('div');
+    meta.className = 'nb-meta';
+
+    const chkNum  = mkChk('nb-chk-manual-num', 'Χειροκίνητος αριθμός');
+    const numInput = document.createElement('input');
+    numInput.type = 'text'; numInput.maxLength = 10;
+    numInput.placeholder = "π.χ. Α΄";
+    numInput.className = 'nb-hidden';
+    numInput.style.width = '64px';
+
+    const chkName = mkChk('nb-chk-name', 'Όνομα');
+const nameInput = makeEditableText('span', 'nb-struct-name-ce nb-hidden', 'Τίτλος...', 'Τίτλος...', 'Όνομα μερους/κεφαλαίου/τμήματος');
+
+    meta.append(chkNum.label, numInput, chkName.label, nameInput);
+
+    // Display
+    const autoNum = ce('span', '', { 'data-auto': type });
+    const manNum  = ce('span', 'nb-hidden nb-struct-manual-num');
+    const display = document.createElement('h2');
+    display.className = 'govuk-heading-s nb-struct-display';
+    display.append(document.createTextNode(prefix + ' '), autoNum, manNum);
+
+    const nameLine = ce('p', 'govuk-body govuk-!-margin-bottom-3 nb-struct-name-val nb-hidden');
+    nameLine.setAttribute('data-name-mirror', '');
+
+    const wrap = document.createElement('div');
+    wrap.append(meta, display, nameLine);
+
+    // Checkbox interactions
+    chkNum.input.addEventListener('change', () => {
+      if (chkNum.input.checked) {
+        autoNum.classList.add('nb-hidden');
+        manNum.classList.add('nb-hidden');
+        numInput.classList.remove('nb-hidden');
+        numInput.focus();
+      } else {
+        numInput.classList.add('nb-hidden');
+        autoNum.classList.remove('nb-hidden');
+        manNum.classList.add('nb-hidden');
+        renum();
+      }
+    });
+
+    numInput.addEventListener('input', () => {
+      manNum.textContent = numInput.value;
+    });
+
+    chkName.input.addEventListener('change', () => {
+      if (chkName.input.checked) {
+        nameInput.classList.remove('nb-hidden');
+        nameLine.classList.remove('nb-hidden');
+        (nameInput as HTMLElement).focus();
+      } else {
+        nameInput.classList.add('nb-hidden');
+        nameLine.classList.add('nb-hidden');
+        nameLine.textContent = '';
+      }
+    });
+
+    nameInput.addEventListener('input', () => {
+      nameLine.textContent = (nameInput as HTMLElement).innerText;
+    });
+
+    return wrap;
+  }
+
+  // ── Άρθρο block ─────────────────────────────────────
+
+  function makeArthroContent(_id: number): HTMLElement {
+    const uuid = genId();
+
+    // Meta bar
+    const meta = document.createElement('div');
+    meta.className = 'nb-meta';
+
+    const uuidSpan = ce('span', 'nb-uuid', {}, `ID: ${uuid}`);
+
+    const chkNum  = mkChk('nb-chk-manual-num', 'Χειρ. αριθμός');
+    const numInput = document.createElement('input');
+    numInput.type = 'text'; numInput.maxLength = 8;
+    numInput.placeholder = 'Αριθμός'; numInput.style.width = '60px';
+    numInput.className = 'nb-hidden';
+
+    const chkTitle = mkChk('nb-chk-title', 'Τίτλος');
+
+    meta.append(uuidSpan, chkNum.label, numInput, chkTitle.label);
+
+    // Display
+    const numLabel   = ce('h2', 'nb-arthro-num-label govuk-heading-s', { 'data-auto': 'arthro' });
+    const titleField = makeEditableText('h3', 'nb-arthro-title-field govuk-heading-s nb-hidden', 'Τίτλος άρθρου...', 'Τίτλος άρθρου...', 'Τίτλος άρθρου');
+    const display = document.createElement('div');
+    display.className = 'nb-arthro-display';
+    display.append(numLabel, titleField);
+
+    // Paragraphs list
+    const parasList = document.createElement('div');
+    parasList.className = 'nb-paras-list';
+
+    const btnAddPara = document.createElement('button');
+    btnAddPara.className = 'nb-inline-btn';
+    btnAddPara.textContent = '+ Παράγραφος';
+    btnAddPara.addEventListener('click', () => {
+      addPara(parasList);
+    });
+
+    // Ερμηνευτική Δήλωση toggle
+    const ermSect  = document.createElement('div');
+    ermSect.className = 'nb-arthro-ermineytiki';
+    const chkErm   = mkChk('nb-chk-ermineytiki', 'Ερμηνευτική Δήλωση');
+    const ermMeta  = document.createElement('div');
+    ermMeta.className = 'nb-meta';
+    ermMeta.append(chkErm.label);
+
+    const ermBlock = document.createElement('div');
+    ermBlock.className = 'nb-ermineytiki-block nb-hidden';
+    ermBlock.innerHTML = `
+      <div class="nb-ermineytiki-block-label">Ερμηνευτική Δήλωση</div>
+    `;
+    const ermBody = makeEditableText('div', 'nb-ermineytiki-body-ce', 'Κείμενο ερμηνευτικής δήλωσης...', 'Κείμενο ερμηνευτικής δήλωσης...', 'Ερμηνευτική δήλωση');
+    ermBlock.append(ermBody);
+
+    chkErm.input.addEventListener('change', () => {
+      ermBlock.classList.toggle('nb-hidden', !chkErm.input.checked);
+      if (chkErm.input.checked) ermBody.focus();
+    });
+
+    ermSect.append(ermMeta, ermBlock);
+
+    // Wire title toggle
+    chkTitle.input.addEventListener('change', () => {
+      titleField.classList.toggle('nb-hidden', !chkTitle.input.checked);
+      if (chkTitle.input.checked) (titleField as HTMLElement).focus();
+    });
+
+    // Wire number toggle
+    chkNum.input.addEventListener('change', () => {
+      if (chkNum.input.checked) {
+        numInput.classList.remove('nb-hidden');
+        numInput.focus();
+      } else {
+        numInput.classList.add('nb-hidden');
+        renum();
+      }
+    });
+    numInput.addEventListener('input', () => {
+      numLabel.textContent = 'Άρθρο ' + (numInput.value || '?');
+    });
+
+    const wrap = document.createElement('div');
+    wrap.append(meta, display, parasList, btnAddPara, ermSect);
+    return wrap;
+  }
+
+  // ── Paragraph management ────────────────────────────
+
+  function addPara(list: HTMLElement) {
+    const para = makePara(list);
+    list.appendChild(para);
+    renumParas(list);
+    (para.querySelector<HTMLElement>('.nb-para-body'))?.focus();
+  }
+
+  function makePara(list: HTMLElement): HTMLElement {
+    const para = document.createElement('div');
+    para.className = 'nb-para';
+
+    const numSpan = ce('span', 'nb-para-num');
+    const body    = makeEditableText('div',  'nb-para-body', 'Κείμενο παραγράφου...', 'Κείμενο παραγράφου...', 'Παράγραφος');
+
+    const btnAddSub = document.createElement('button');
+    btnAddSub.className = 'nb-inline-btn-sm';
+    btnAddSub.textContent = '+ α)';
+    btnAddSub.title = 'Προσθήκη υποπαραγράφου';
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'nb-inline-del';
+    btnDel.textContent = '✕';
+    btnDel.title = 'Διαγραφή παραγράφου';
+
+    const actions = document.createElement('div');
+    actions.className = 'nb-para-actions';
+    actions.setAttribute('contenteditable', 'false');
+    actions.append(btnAddSub, btnDel);
+
+    const row = document.createElement('div');
+    row.className = 'nb-para-row';
+    row.append(numSpan, body, actions);
+
+    const subsList = document.createElement('div');
+    subsList.className = 'nb-subparas-list';
+
+    para.append(row, subsList);
+
+    btnAddSub.addEventListener('click', () => {
+      addSubPara(subsList);
+    });
+
+    btnDel.addEventListener('click', () => {
+      para.remove();
+      renumParas(list);
+    });
+
+    return para;
+  }
+
+  function renumParas(list: HTMLElement) {
+    list.querySelectorAll<HTMLElement>(':scope > .nb-para .nb-para-num').forEach((el, i) => {
+      el.textContent = String(i + 1) + '.';
+    });
+  }
+
+  // ── Sub-paragraph management (α β γ) ────────────────
+
+  function addSubPara(list: HTMLElement) {
+    const sub = makeSubPara(list);
+    list.appendChild(sub);
+    renumSubParas(list);
+    (sub.querySelector<HTMLElement>('.nb-subpara-body'))?.focus();
+  }
+
+  function makeSubPara(list: HTMLElement): HTMLElement {
+    const sub = document.createElement('div');
+    sub.className = 'nb-subpara';
+
+    const numSpan = ce('span', 'nb-subpara-num');
+    const body    = makeEditableText('div',  'nb-subpara-body', 'Κείμενο υποπαραγράφου...', 'Κείμενο υποπαραγράφου...', 'Υποπαράγραφος');
+
+    const btnAddSub2 = document.createElement('button');
+    btnAddSub2.className = 'nb-inline-btn-sm';
+    btnAddSub2.textContent = '+ αα)';
+    btnAddSub2.title = 'Προσθήκη υπο-υποπαραγράφου';
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'nb-inline-del';
+    btnDel.textContent = '✕';
+    btnDel.title = 'Διαγραφή υποπαραγράφου';
+
+    const actions = document.createElement('div');
+    actions.className = 'nb-subpara-actions';
+    actions.setAttribute('contenteditable', 'false');
+    actions.append(btnAddSub2, btnDel);
+
+    const row = document.createElement('div');
+    row.className = 'nb-subpara-row';
+    row.append(numSpan, body, actions);
+
+    const subsubs = document.createElement('div');
+    subsubs.className = 'nb-subsubparas-list';
+
+    sub.append(row, subsubs);
+
+    btnAddSub2.addEventListener('click', () => {
+      addSubSubPara(subsubs);
+    });
+
+    btnDel.addEventListener('click', () => {
+      sub.remove();
+      renumSubParas(list);
+    });
+
+    return sub;
+  }
+
+  function renumSubParas(list: HTMLElement) {
+    list.querySelectorAll<HTMLElement>(':scope > .nb-subpara .nb-subpara-num').forEach((el, i) => {
+      el.textContent = grL(i);
+    });
+  }
+
+  // ── Sub-sub-paragraph management (αα ββ) ────────────
+
+  function addSubSubPara(list: HTMLElement) {
+    const el = makeSubSubPara(list);
+    list.appendChild(el);
+    renumSubSubParas(list);
+    (el.querySelector<HTMLElement>('.nb-subsubpara-body'))?.focus();
+  }
+
+  function makeSubSubPara(list: HTMLElement): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'nb-subsubpara';
+
+    const numSpan = ce('span', 'nb-subsubpara-num');
+    const body    = makeEditableText('div',  'nb-subsubpara-body', 'Κείμενο...', 'Κείμενο...', 'Υπο-υποπαράγραφος');
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'nb-inline-del';
+    btnDel.textContent = '✕';
+    btnDel.title = 'Διαγραφή';
+
+    const actions = document.createElement('div');
+    actions.className = 'nb-subsubpara-actions';
+    actions.setAttribute('contenteditable', 'false');
+    actions.append(btnDel);
+
+    el.append(numSpan, body, actions);
+
+    btnDel.addEventListener('click', () => {
+      el.remove();
+      renumSubSubParas(list);
+    });
+
+    return el;
+  }
+
+  function renumSubSubParas(list: HTMLElement) {
+    list.querySelectorAll<HTMLElement>(':scope > .nb-subsubpara .nb-subsubpara-num').forEach((el, i) => {
+      el.textContent = grLL(i);
+    });
+  }
+
+  // ── Global auto-numbering ────────────────────────────
+
+  function renum() {
+    let artN = 0, merosN = 0, kefN = 0, tmimaN = 0, aitN = 0;
+
+    paper.querySelectorAll<HTMLElement>('.nb-block').forEach(block => {
+      const type = block.dataset.type!;
+
+      if (type === 'aitiologiki') {
+        aitN++;
+        const el = block.querySelector<HTMLElement>('[data-auto="aitiologiki"]');
+        if (el) el.textContent = String(aitN) + '.';
+      }
+
+      if (type === 'meros') {
+        merosN++;
+        const el    = block.querySelector<HTMLElement>('[data-auto="meros"]');
+        const chk   = block.querySelector<HTMLInputElement>('.nb-chk-manual-num');
+        if (el && !chk?.checked) el.textContent = grU(merosN - 1);
+      }
+
+      if (type === 'kefalaio') {
+        kefN++;
+        const el  = block.querySelector<HTMLElement>('[data-auto="kefalaio"]');
+        const chk = block.querySelector<HTMLInputElement>('.nb-chk-manual-num');
+        if (el && !chk?.checked) el.textContent = grU(kefN - 1);
+      }
+
+      if (type === 'tmima') {
+        tmimaN++;
+        const el  = block.querySelector<HTMLElement>('[data-auto="tmima"]');
+        const chk = block.querySelector<HTMLInputElement>('.nb-chk-manual-num');
+        if (el && !chk?.checked) el.textContent = grU(tmimaN - 1);
+      }
+
+      if (type === 'arthro') {
+        artN++;
+        const numLabel = block.querySelector<HTMLElement>('[data-auto="arthro"]');
+        const chk      = block.querySelector<HTMLInputElement>('.nb-chk-manual-num');
+        if (numLabel && !chk?.checked) numLabel.textContent = 'Άρθρο ' + artN;
+      }
+    });
+  }
+
+  // ── Move block ───────────────────────────────────────
+
+  function moveBlock(el: HTMLElement, dir: -1 | 1) {
+    if (dir === -1) {
+      const prev = el.previousElementSibling as HTMLElement | null;
+      if (prev) paper.insertBefore(el, prev);
+    } else {
+      const next = el.nextElementSibling as HTMLElement | null;
+      if (next) paper.insertBefore(next, el);
+    }
+  }
+
+  // ── Empty state ──────────────────────────────────────
+
+  function showEmpty() {
+    const p    = document.createElement('p');
+    p.id        = 'nb-empty';
+    p.className = 'nb-empty';
+    p.textContent = 'Κάντε κλικ σε ένα στοιχείο για να ξεκινήσετε.';
+    paper.appendChild(p);
+  }
+
+  // ── Print / Clear ────────────────────────────────────
+
+  const clearModal = document.getElementById('nb-clear-modal') as HTMLElement;
+  const clearConfirm = document.getElementById('nb-clear-confirm') as HTMLButtonElement;
+  const clearCancel = document.getElementById('nb-clear-cancel') as HTMLButtonElement;
+
+  const blockActionModal = document.getElementById('nb-block-action-modal') as HTMLElement;
+  const blockActionLabel = document.getElementById('nb-block-action-modal-label') as HTMLElement;
+  const blockEditBtn = document.getElementById('nb-block-edit') as HTMLButtonElement;
+  const blockUpBtn = document.getElementById('nb-block-up') as HTMLButtonElement;
+  const blockDownBtn = document.getElementById('nb-block-down') as HTMLButtonElement;
+  const blockDeleteBtn = document.getElementById('nb-block-delete') as HTMLButtonElement;
+  const blockActionCancel = document.getElementById('nb-block-action-cancel') as HTMLButtonElement;
+
+  const lawNumberModal = document.getElementById('nb-law-number-modal') as HTMLElement;
+  const lawNumberInput = document.getElementById('nb-law-number') as HTMLInputElement;
+  const lawTitleInput = document.getElementById('nb-law-title') as HTMLInputElement;
+  const lawSubtitleInput = document.getElementById('nb-law-subtitle') as HTMLInputElement;
+  const lawDateInput = document.getElementById('nb-law-date') as HTMLInputElement;
+  const lawSaveBtn = document.getElementById('nb-law-save') as HTMLButtonElement;
+  const lawCancelBtn = document.getElementById('nb-law-cancel') as HTMLButtonElement;
+
+  const objectEditorModal = document.getElementById('nb-object-editor-modal') as HTMLElement;
+  const objectEditorTitle = document.getElementById('nb-object-editor-modal-title') as HTMLElement;
+  const objectEditorDesc = document.getElementById('nb-object-editor-modal-desc') as HTMLElement;
+  const objectEditorText = document.getElementById('nb-object-editor-text') as HTMLTextAreaElement;
+  const objectEditorSave = document.getElementById('nb-object-editor-save') as HTMLButtonElement;
+  const objectEditorCancel = document.getElementById('nb-object-editor-cancel') as HTMLButtonElement;
+  let objectEditorTarget: HTMLElement | null = null;
+
+  let activeBlock: HTMLElement | null = null;
+
+  document.getElementById('btn-print')!.addEventListener('click', () => window.print());
+
+  document.getElementById('btn-clear')!.addEventListener('click', () => openModal(clearModal));
+
+  clearConfirm.addEventListener('click', () => {
+    paper.innerHTML = '';
+    blockSeq = 0;
+    closeModal(clearModal);
+    showEmpty();
+  });
+
+  clearCancel.addEventListener('click', () => closeModal(clearModal));
+
+  clearModal.addEventListener('click', event => {
+    if (event.target === clearModal) closeModal(clearModal);
+  });
+
+  lawSaveBtn.addEventListener('click', () => {
+    const values = {
+      number: lawNumberInput.value,
+      title: lawTitleInput.value,
+      subtitle: lawSubtitleInput.value,
+      date: lawDateInput.value,
+    };
+
+    if (activeBlock) {
+      updateLawNumberBlock(activeBlock, values);
+    } else if (pendingBlockType === 'arithmos-nomou') {
+      document.getElementById('nb-empty')?.remove();
+      const id = ++blockSeq;
+      const block = makeBlockEl(pendingBlockType, id);
+      paper.appendChild(block);
+      updateLawNumberBlock(block, values);
+      renum();
+    }
+
+    pendingBlockType = null;
+    closeModal(lawNumberModal);
+  });
+
+  lawCancelBtn.addEventListener('click', () => {
+    pendingBlockType = null;
+    closeModal(lawNumberModal);
+  });
+
+  lawNumberModal.addEventListener('click', event => {
+    if (event.target === lawNumberModal) {
+      pendingBlockType = null;
+      closeModal(lawNumberModal);
+    }
+  });
+
+  blockEditBtn.addEventListener('click', () => {
+    if (!activeBlock) return;
+    if (activeBlock.dataset.type === 'arithmos-nomou') {
+      populateLawModal(activeBlock);
+      openModal(lawNumberModal);
+    } else {
+      const editable = activeBlock.querySelector<HTMLElement>('[data-editable="true"]');
+      if (editable) openObjectEditor(editable);
+    }
+    closeModal(blockActionModal);
+  });
+
+  blockUpBtn.addEventListener('click', () => {
+    if (!activeBlock) return;
+    moveBlock(activeBlock, -1);
+    renum();
+    closeModal(blockActionModal);
+  });
+
+  blockDownBtn.addEventListener('click', () => {
+    if (!activeBlock) return;
+    moveBlock(activeBlock, 1);
+    renum();
+    closeModal(blockActionModal);
+  });
+
+  blockDeleteBtn.addEventListener('click', () => {
+    if (!activeBlock) return;
+    activeBlock.remove();
+    renum();
+    if (!paper.querySelector('.nb-block')) showEmpty();
+    closeModal(blockActionModal);
+  });
+
+  blockActionCancel.addEventListener('click', () => closeModal(blockActionModal));
+
+  blockActionModal.addEventListener('click', event => {
+    if (event.target === blockActionModal) closeModal(blockActionModal);
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      if (!clearModal.classList.contains('nb-hidden')) closeModal(clearModal);
+      if (!blockActionModal.classList.contains('nb-hidden')) closeModal(blockActionModal);
+    }
+  });
+
+  function openBlockMenuModal(block: HTMLElement) {
+    activeBlock = block;
+
+    const type = block.dataset.type ?? 'μπλοκ';
+    if (type === 'arithmos-nomou') {
+      populateLawModal(block);
+      openModal(lawNumberModal);
+      return;
+    }
+
+    blockActionLabel.textContent = `Ενέργειες για το μπλοκ: ${type}`;
+    blockUpBtn.disabled = !block.previousElementSibling;
+    blockDownBtn.disabled = !block.nextElementSibling;
+
+    openModal(blockActionModal);
+  }
+
+  function populateLawModal(block: HTMLElement | null) {
+    lawNumberInput.value = block?.querySelector<HTMLElement>('.nb-nomou-num')?.textContent?.trim() ?? "ΝΟΜΟΣ ΥΠ' ΑΡΙΘ. ____/2025";
+    lawTitleInput.value = block?.querySelector<HTMLElement>('.nb-nomou-title')?.textContent?.trim() ?? 'ΤΙΤΛΟΣ ΝΟΜΟΥ';
+    lawSubtitleInput.value = block?.querySelector<HTMLElement>('.nb-nomou-subtitle')?.textContent?.trim() ?? 'ΤΡΟΠΟΠΟΙΗΣΗ / ΣΥΜΠΛΗΡΩΣΗ ΔΙΑΤΑΞΕΩΝ...';
+    lawDateInput.value = block?.querySelector<HTMLElement>('.nb-nomou-date')?.textContent?.trim() ?? '(ΦΕΚ Α΄ ___/__.__.2025)';
+  }
+
+  function openObjectEditor(target: HTMLElement) {
+    objectEditorTarget = target;
+    objectEditorTitle.textContent = target.dataset.editTitle || 'Επεξεργασία αντικειμένου';
+    objectEditorDesc.textContent = target.dataset.editDesc || 'Επεξεργαστείτε το επιλεγμένο αντικείμενο.';
+    objectEditorText.value = target.textContent?.trim() ?? '';
+    openModal(objectEditorModal);
+  }
+
+  function makeEditableText(tag: string, cls: string, text: string, placeholder: string, label: string): HTMLElement {
+    const el = ce(tag, cls + ' nb-editable', {}, text);
+    el.dataset.editable = 'true';
+    el.dataset.ph = placeholder;
+    el.dataset.editTitle = `Επεξεργασία ${label}`;
+    el.dataset.editDesc = `Κάντε κλικ για να επεξεργαστείτε το ${label.toLowerCase()}.`;
+    el.addEventListener('click', () => openObjectEditor(el));
+    return el;
+  }
+
+  function updateLawNumberBlock(block: HTMLElement, values: { number: string; title: string; subtitle: string; date: string; }) {
+    const number = values.number.trim().toUpperCase() || "ΝΟΜΟΣ ΥΠ' ΑΡΙΘ. ____/2025";
+    const title = values.title.trim() || 'Τίτλος νόμου';
+    const subtitle = values.subtitle.trim() || 'Τροποποίηση / συμπλήρωση διατάξεων...';
+    const date = values.date.trim() || '(ΦΕΚ Α΄ ___/__.__.2025)';
+
+    block.querySelector<HTMLElement>('.nb-nomou-num')!.textContent = number;
+    block.querySelector<HTMLElement>('.nb-nomou-title')!.textContent = title;
+    block.querySelector<HTMLElement>('.nb-nomou-subtitle')!.textContent = subtitle;
+    block.querySelector<HTMLElement>('.nb-nomou-date')!.textContent = date;
+  }
+
+  function openModal(modal: HTMLElement) {
+    modal.classList.remove('nb-hidden');
+    document.body.classList.add('nb-modal-open');
+  }
+
+  function closeModal(modal: HTMLElement) {
+    modal.classList.add('nb-hidden');
+    document.body.classList.remove('nb-modal-open');
+  }
+
+  // ── Helpers ──────────────────────────────────────────
+
+  function genId(): string {
+    return crypto.randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+  }
+
+  function ce(tag: string, cls: string, attrs: Record<string, string> = {}, text?: string): HTMLElement {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    if (text !== undefined) el.textContent = text;
+    return el;
+  }
+
+  function mkChk(cls: string, label: string): { label: HTMLElement; input: HTMLInputElement } {
+    const lbl = document.createElement('label');
+    lbl.className = 'nb-toggle-label';
+    const inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.className = cls;
+    const txt = document.createTextNode(' ' + label);
+    lbl.append(inp, txt);
+    return { label: lbl, input: inp };
+  }
+</script>

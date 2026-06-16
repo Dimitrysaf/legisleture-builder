@@ -1,0 +1,88 @@
+---
+---
+<div class="govuk-cookie-banner" data-nosnippet role="region" aria-label="Cookies στο gov.gr" id="cookie-banner" hidden>
+
+  <div class="govuk-cookie-banner__message govuk-width-container" id="cookie-banner-ask">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h2 class="govuk-cookie-banner__heading govuk-heading-m">Cookies στο gov.gr</h2>
+        <div class="govuk-cookie-banner__content">
+          <p class="govuk-body">Χρησιμοποιούμε μερικά απαραίτητα cookies για να λειτουργεί αυτή η υπηρεσία.</p>
+          <p class="govuk-body">Θα θέλαμε επίσης να χρησιμοποιήσουμε cookies μέτρησης ώστε να κατανοούμε πώς χρησιμοποιείτε την υπηρεσία και να κάνουμε βελτιώσεις.</p>
+        </div>
+      </div>
+    </div>
+    <div class="govuk-button-group">
+      <button type="button" class="govuk-button" id="cookie-accept-btn">Αποδοχή cookies μέτρησης</button>
+      <button type="button" class="govuk-button" id="cookie-reject-btn">Απόρριψη cookies μέτρησης</button>
+      <a class="govuk-link" href="/help/cookies">Προβολή cookies</a>
+    </div>
+  </div>
+
+  <div class="govuk-cookie-banner__message govuk-width-container" id="cookie-banner-accepted" hidden>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <div class="govuk-cookie-banner__content" role="alert">
+          <p class="govuk-body">Αποδεχτήκατε τα cookies μέτρησης. Μπορείτε να <a class="govuk-link" href="/help/cookies">αλλάξετε τις ρυθμίσεις cookies</a> ανά πάσα στιγμή.</p>
+        </div>
+      </div>
+    </div>
+    <div class="govuk-button-group">
+      <button type="button" class="govuk-button" id="cookie-hide-accepted-btn">Απόκρυψη μηνύματος</button>
+    </div>
+  </div>
+
+  <div class="govuk-cookie-banner__message govuk-width-container" id="cookie-banner-rejected" hidden>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <div class="govuk-cookie-banner__content" role="alert">
+          <p class="govuk-body">Απορρίψατε τα cookies μέτρησης. Μπορείτε να <a class="govuk-link" href="/help/cookies">αλλάξετε τις ρυθμίσεις cookies</a> ανά πάσα στιγμή.</p>
+        </div>
+      </div>
+    </div>
+    <div class="govuk-button-group">
+      <button type="button" class="govuk-button" id="cookie-hide-rejected-btn">Απόκρυψη μηνύματος</button>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+  (function() {
+    var COOKIE_NAME = 'govgr_cookie_prefs';
+    var raw = document.cookie.split('; ').find(function(r) { return r.startsWith(COOKIE_NAME + '='); });
+    if (!raw) document.getElementById('cookie-banner').removeAttribute('hidden');
+  })();
+</script>
+
+<script>
+  const COOKIE_NAME = 'govgr_cookie_prefs';
+  const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+  function savePrefs(value: string) {
+    const prefs = JSON.stringify({ analytics: value, comms: value, settings: value });
+    document.cookie = `${COOKIE_NAME}=${encodeURIComponent(prefs)}; max-age=${COOKIE_MAX_AGE}; path=/; SameSite=Lax`;
+  }
+
+  const banner   = document.getElementById('cookie-banner')!;
+  const askPanel = document.getElementById('cookie-banner-ask')!;
+  const accPanel = document.getElementById('cookie-banner-accepted')!;
+  const rejPanel = document.getElementById('cookie-banner-rejected')!;
+
+  document.getElementById('cookie-accept-btn')?.addEventListener('click', () => {
+    savePrefs('yes');
+    askPanel.setAttribute('hidden', '');
+    accPanel.removeAttribute('hidden');
+    accPanel.querySelector<HTMLElement>('[role="alert"]')?.focus();
+  });
+
+  document.getElementById('cookie-reject-btn')?.addEventListener('click', () => {
+    savePrefs('no');
+    askPanel.setAttribute('hidden', '');
+    rejPanel.removeAttribute('hidden');
+    rejPanel.querySelector<HTMLElement>('[role="alert"]')?.focus();
+  });
+
+  document.getElementById('cookie-hide-accepted-btn')?.addEventListener('click', () => banner.setAttribute('hidden', ''));
+  document.getElementById('cookie-hide-rejected-btn')?.addEventListener('click', () => banner.setAttribute('hidden', ''));
+</script>

@@ -1,0 +1,80 @@
+---
+import FeedbackForm from './FeedbackForm.astro';
+---
+<div class="gem-c-feedback">
+  <div class="govuk-width-container">
+
+    <div class="gem-c-feedback__prompt" id="feedback-prompt" tabindex="-1">
+      <div class="gem-c-feedback__prompt-content">
+        <div class="gem-c-feedback__prompt-questions" id="feedback-prompt-questions">
+          <div class="gem-c-feedback__prompt-question-answer">
+            <h2 class="gem-c-feedback__prompt-question">Ήταν χρήσιμη αυτή η σελίδα;</h2>
+            <ul class="gem-c-feedback__option-list">
+              <li class="gem-c-feedback__option-list-item">
+                <button class="govuk-button gem-c-feedback__prompt-link" id="feedback-yes-btn">
+                  Ναι <span class="govuk-visually-hidden">αυτή η σελίδα ήταν χρήσιμη</span>
+                </button>
+              </li>
+              <li class="gem-c-feedback__option-list-item">
+                <button class="govuk-button gem-c-feedback__prompt-link" id="feedback-no-btn" aria-controls="feedback-no-form" aria-expanded="false">
+                  Όχι <span class="govuk-visually-hidden">αυτή η σελίδα δεν ήταν χρήσιμη</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="gem-c-feedback__prompt-questions gem-c-feedback__prompt-questions--something-is-wrong">
+          <button class="govuk-button gem-c-feedback__prompt-link" id="feedback-report-btn" aria-controls="feedback-report-form" aria-expanded="false">
+            Αναφορά προβλήματος σε αυτή τη σελίδα
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="gem-c-feedback__prompt-questions gem-c-feedback__prompt-success" role="alert" id="feedback-success" tabindex="-1" hidden>
+      Σας ευχαριστούμε για τα σχόλιά σας
+    </div>
+
+    <FeedbackForm prefix="no" secondLabel="Τι δεν ήταν χρήσιμο;" />
+    <FeedbackForm prefix="report" secondLabel="Τι πήγε στραβά;" />
+
+  </div>
+</div>
+
+<script>
+  const prompt = document.getElementById('feedback-prompt')!;
+
+  function openForm(formId: string) {
+    ['feedback-no-form', 'feedback-report-form'].forEach(id =>
+      document.getElementById(id)?.setAttribute('hidden', '')
+    );
+    prompt.setAttribute('hidden', '');
+    const form = document.getElementById(formId)!;
+    form.removeAttribute('hidden');
+    form.querySelector<HTMLElement>('h2')?.focus();
+  }
+
+  function closeForm(formId: string) {
+    document.getElementById(formId)?.setAttribute('hidden', '');
+    prompt.removeAttribute('hidden');
+    prompt.focus();
+  }
+
+  function showSuccess() {
+    ['feedback-no-form', 'feedback-report-form'].forEach(id =>
+      document.getElementById(id)?.setAttribute('hidden', '')
+    );
+    prompt.setAttribute('hidden', '');
+    const success = document.getElementById('feedback-success')!;
+    success.removeAttribute('hidden');
+    success.focus();
+  }
+
+  document.getElementById('feedback-yes-btn')?.addEventListener('click', showSuccess);
+  document.getElementById('feedback-no-btn')?.addEventListener('click', () => openForm('feedback-no-form'));
+  document.getElementById('feedback-report-btn')?.addEventListener('click', () => openForm('feedback-report-form'));
+  document.getElementById('feedback-no-close')?.addEventListener('click', () => closeForm('feedback-no-form'));
+  document.getElementById('feedback-report-close')?.addEventListener('click', () => closeForm('feedback-report-form'));
+  document.getElementById('feedback-no-form-el')?.addEventListener('submit', (e) => { e.preventDefault(); showSuccess(); });
+  document.getElementById('feedback-report-form-el')?.addEventListener('submit', (e) => { e.preventDefault(); showSuccess(); });
+</script>

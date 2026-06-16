@@ -1,0 +1,25 @@
+---
+interface Props {
+  prefix: 'no' | 'report';
+  secondLabel: string;
+}
+const { prefix, secondLabel } = Astro.props;
+---
+<div id={`feedback-${prefix}-form`} class="gem-c-feedback__form-wrapper" hidden>
+  <form class="gem-c-feedback__form" id={`feedback-${prefix}-form-el`} novalidate>
+    <h2 class="gem-c-feedback__form-heading">Βοηθήστε μας να βελτιώσουμε το gov.gr</h2>
+    <p class="gem-c-feedback__form-paragraph">Μην συμπεριλαμβάνετε προσωπικές ή οικονομικές πληροφορίες, όπως αριθμό ταυτότητας ή στοιχεία κάρτας.</p>
+    <div class="govuk-form-group">
+      <label class="govuk-label" for={`${prefix}-what-doing`}>Τι κάνατε;</label>
+      <textarea class="govuk-textarea" id={`${prefix}-what-doing`} name="what_doing" rows={3}></textarea>
+    </div>
+    <div class="govuk-form-group">
+      <label class="govuk-label" for={`${prefix}-what-wrong`}>{secondLabel}</label>
+      <textarea class="govuk-textarea" id={`${prefix}-what-wrong`} name="what_wrong" rows={3}></textarea>
+    </div>
+    <div class="gem-c-feedback__button-wrapper">
+      <button type="submit" class="govuk-button">Αποστολή</button>
+      <button type="button" class="govuk-button govuk-button--secondary gem-c-feedback__close" id={`feedback-${prefix}-close`}>Ακύρωση</button>
+    </div>
+  </form>
+</div>

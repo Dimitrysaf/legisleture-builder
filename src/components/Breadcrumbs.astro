@@ -1,0 +1,22 @@
+---
+interface Props {
+  items: Array<{ text: string; href?: string }>;
+}
+const { items } = Astro.props;
+---
+{items.length > 0 && (
+  <div class="govuk-width-container">
+    <nav class="govuk-breadcrumbs" aria-label="Breadcrumb">
+      <ol class="govuk-breadcrumbs__list">
+        {items.map(crumb => (
+          <li class="govuk-breadcrumbs__list-item">
+            {crumb.href
+              ? <a class="govuk-breadcrumbs__link" href={crumb.href}>{crumb.text}</a>
+              : <span aria-current="page">{crumb.text}</span>
+            }
+          </li>
+        ))}
+      </ol>
+    </nav>
+  </div>
+)}
