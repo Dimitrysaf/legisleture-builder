@@ -1,39 +1,7 @@
-:root {
-  --govgr-brand: #003476;
-  --govgr-secondary: #aec6e8;
-}
-
-$govuk-functional-colours: (
-  "brand":        #003476,
-  "focus":        #ffdd00,
-  "link":         #003476,
-  "link-hover":   #00205b,
-  "link-visited": #4c2c92,
-);
-
-$govuk-font-family:  "Roboto", system-ui, sans-serif;
-$govuk-assets-path:  "/node_modules/govuk-frontend/dist/govuk/assets/";
-
-@import "govuk-frontend/dist/govuk/index";
 @import "builder";
 
 body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  font-family: $govuk-font-family;
+  font-family: 'Roboto', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-input,
-button,
-select,
-textarea {
-  font-family: $govuk-font-family;
-}
-
-#main-content,
-.govuk-main-wrapper { flex: 1; }
-
-.govuk-colour-secondary { color: #505a5f; }

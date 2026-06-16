@@ -8,8 +8,13 @@
     "preview": "astro preview"
   },
   "dependencies": {
+    "@astrojs/tailwind": "^6.0.2",
     "astro": "^5.0.0",
-    "govuk-frontend": "^6.1.0",
-    "sass": "^1.99.0"
+    "daisyui": "^4.12.24",
+    "sass": "^1.99.0",
+    "tailwindcss": "^3.4.19"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.0"
   }
 }

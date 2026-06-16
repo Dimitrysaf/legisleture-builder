@@ -1,0 +1,67 @@
+import type { Template, StoredCustomTemplate } from './types';
+import { articleTemplate } from './built-in/article';
+import { chapterTemplate } from './built-in/chapter';
+import { paragraphTemplate } from './built-in/paragraph';
+import { preambleTemplate } from './built-in/preamble';
+import { lawRefTemplate } from './built-in/lawref';
+import { noteTemplate } from './built-in/note';
+
+const STORAGE_KEY = 'nb_custom_templates';
+
+const registry = new Map<string, Template>([
+  ['article', articleTemplate],
+  ['chapter', chapterTemplate],
+  ['paragraph', paragraphTemplate],
+  ['preamble', preambleTemplate],
+  ['lawref', lawRefTemplate],
+  ['note', noteTemplate],
+]);
+
+export function getTemplate(id: string): Template | undefined {
+  return registry.get(id);
+}
+
+export function getAllTemplates(): Template[] {
+  return Array.from(registry.values());
+}
+
+function makeRenderFn(templateStr: string, templateId: string): Template['render'] {
+  return (data) => {
+    let html = templateStr;
+    for (const [key, value] of Object.entries(data)) {
+      html = html.replaceAll(`{{${key}}}`, value);
+    }
+    return `<div class="nb-block nb-block--custom" data-template="${templateId}">${html}</div>`;
+  };
+}
+
+export function loadCustomTemplates(): void {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+    const customs: StoredCustomTemplate[] = JSON.parse(stored);
+    for (const ct of customs) {
+      registry.set(ct.id, { ...ct, render: makeRenderFn(ct.templateStr, ct.id), isCustom: true });
+    }
+  } catch {}
+}
+
+export function saveCustomTemplate(template: Template, templateStr: string): void {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  const customs: StoredCustomTemplate[] = stored ? JSON.parse(stored) : [];
+  const idx = customs.findIndex((c) => c.id === template.id);
+  const entry: StoredCustomTemplate = { ...template, templateStr, isCustom: true };
+  delete (entry as any).render;
+  if (idx >= 0) customs[idx] = entry;
+  else customs.push(entry);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(customs));
+  registry.set(template.id, { ...template, render: makeRenderFn(templateStr, template.id), isCustom: true });
+}
+
+export function deleteCustomTemplate(id: string): void {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) return;
+  const customs: StoredCustomTemplate[] = JSON.parse(stored).filter((c: StoredCustomTemplate) => c.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(customs));
+  registry.delete(id);
+}
