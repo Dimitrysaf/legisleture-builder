@@ -15,6 +15,7 @@ $govuk-font-family:  "Roboto", system-ui, sans-serif;
 $govuk-assets-path:  "/node_modules/govuk-frontend/dist/govuk/assets/";
 
 @import "govuk-frontend/dist/govuk/index";
+@import "builder";
 
 body {
   display: flex;

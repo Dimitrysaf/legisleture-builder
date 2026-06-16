@@ -1,0 +1,15 @@
+---
+import Modal from './Modal.astro';
+import ModalField from './ModalField.astro';
+---
+<Modal id="nb-law-number-modal" titleId="nb-law-number-modal-title" title="Αριθμός νόμου">
+  <p class="govuk-body">Εισάγετε τα στοιχεία του νόμου για την εμφάνιση στην A4 σελίδα.</p>
+  <ModalField label="Νόμος υπ' αριθ." id="nb-law-number" />
+  <ModalField label="Τίτλος" id="nb-law-title" />
+  <ModalField label="Υπότιτλος" id="nb-law-subtitle" />
+  <ModalField label="ΦΕΚ / Ημερομηνία" id="nb-law-date" />
+  <div class="nb-modal-actions">
+    <button class="govuk-button" id="nb-law-save" type="button">Αποθήκευση</button>
+    <button class="govuk-button govuk-button--secondary" id="nb-law-cancel" type="button">Ακύρωση</button>
+  </div>
+</Modal>

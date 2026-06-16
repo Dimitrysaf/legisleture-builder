@@ -1,0 +1,16 @@
+---
+interface Props {
+  id: string;
+  titleId: string;
+  title: string;
+}
+const { id, titleId, title } = Astro.props;
+---
+<div class="nb-modal-backdrop nb-hidden" id={id} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+  <div class="nb-modal" role="document">
+    <div class="nb-modal-content">
+      <h2 class="govuk-heading-m" id={titleId}>{title}</h2>
+      <slot />
+    </div>
+  </div>
+</div>

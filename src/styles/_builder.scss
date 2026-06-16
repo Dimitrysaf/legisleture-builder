@@ -1,0 +1,704 @@
+/* ── Reset main-wrapper top padding so toolbar hugs the header ── */
+.govuk-main-wrapper { padding-top: 0 !important; }
+
+/* ══════════════════════════════════════════════════
+   TOOLBAR
+   ══════════════════════════════════════════════════ */
+
+.nb-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: #003476;
+  padding: 6px 12px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nb-toolbar-blocks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.nb-toolbar-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nb-tool {
+  background: rgba(255,255,255,0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 2px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-family: 'Roboto', system-ui, sans-serif;
+  cursor: pointer;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.nb-tool:hover { background: rgba(255,255,255,0.24); }
+
+.nb-tool--print { background: #1d70b8; border-color: #1d70b8; }
+.nb-tool--print:hover { background: #003078; border-color: #003078; }
+
+.nb-tool--clear { background: #d4351c; border-color: #d4351c; }
+.nb-tool--clear:hover { background: #aa2a16; border-color: #aa2a16; }
+
+.nb-sep {
+  display: inline-block;
+  width: 1px;
+  height: 22px;
+  background: rgba(255,255,255,0.3);
+  margin: 0 2px;
+  align-self: center;
+}
+
+/* ══════════════════════════════════════════════════
+   CANVAS & PAPER
+   ══════════════════════════════════════════════════ */
+
+.nb-canvas {
+  background: #d8d8d8;
+  padding: 32px 20px 48px;
+  min-height: calc(100vh - 140px);
+}
+
+.nb-page-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-start;
+  padding: 0;
+  z-index: 1;
+  width: 100%;
+  pointer-events: none;
+}
+
+.nb-page-header__coat {
+  display: flex;
+  align-items: flex-start;
+  margin: 10mm 0 0 10mm;
+  pointer-events: auto;
+}
+
+.nb-coat-of-arms {
+  width: 60px;
+  height: auto;
+  display: block;
+}
+
+.nb-builder-intro {
+  margin: 0 0 16px;
+  padding: 0 12px;
+}
+
+.nb-builder-intro h1,
+.nb-builder-intro p {
+  margin: 0;
+}
+
+.nb-builder-intro p + p {
+  margin-top: 0.8em;
+}
+
+@media print {
+  .nb-builder-intro {
+    display: none;
+  }
+}
+
+.nb-paper {
+  width: min(210mm, 100%);
+  max-width: 760px;
+  margin: 0 auto;
+  background: #ffffff;
+  padding: 70px 88px 88px;
+  font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
+  font-size: 11.5pt;
+  line-height: 1.65;
+  color: #0b0c0c;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  min-height: 297mm;
+  position: relative;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+}
+
+.nb-builder-page {
+  width: 100%;
+}
+
+.nb-block-menu-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #b1b4b6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #0b0c0c;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+  z-index: 10;
+}
+
+.nb-block-menu-btn:hover,
+.nb-block-menu-btn:focus {
+  transform: translateY(-1px);
+  border-color: #003476;
+  outline: none;
+}
+
+.nb-block:hover .nb-block-menu-btn,
+.nb-block-menu-btn:focus {
+  opacity: 1;
+}
+
+.nb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 300;
+}
+
+.nb-modal {
+  background: #ffffff;
+  border: 1px solid #b1b4b6;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  width: min(100%, 420px);
+}
+
+.nb-modal-content {
+  padding: 24px;
+}
+
+.nb-modal-field {
+  margin-top: 18px;
+}
+
+.nb-modal-field label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.nb-modal-field .govuk-input {
+  width: 100%;
+  max-width: 100%;
+}
+
+.nb-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.nb-modal-actions--bottom {
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+
+.nb-modal-backdrop.nb-hidden { display: none !important; }
+
+.nb-empty {
+  text-align: center;
+  color: #767676;
+  padding: 48px 0;
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 14px;
+}
+
+/* ══════════════════════════════════════════════════
+   BLOCK BASE
+   ══════════════════════════════════════════════════ */
+
+.nb-block {
+  position: relative;
+  margin-bottom: 2rem;
+  padding: 22px;
+  border: 1px solid #dfe1e5;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.nb-block:hover {
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.08);
+  outline: 1px dashed #adb5bd;
+  outline-offset: 3px;
+}
+
+.nb-block:hover > .nb-block-ctrl-bar { opacity: 1; pointer-events: auto; }
+
+/* ── Block control bar (↑ ↓ ✕) ── */
+.nb-block-ctrl-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+  z-index: 30;
+  background: #fff;
+  border: 1px solid #b1b4b6;
+  padding: 2px;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.14);
+}
+
+.nb-ctrl {
+  width: 26px; height: 22px;
+  border: 1px solid #b1b4b6;
+  background: #f3f2f1;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 2px; padding: 0; line-height: 1; color: #0b0c0c;
+}
+.nb-ctrl:hover { background: #dee0e2; border-color: #0b0c0c; }
+.nb-ctrl-del { color: #d4351c; border-color: #f4cdc6; }
+.nb-ctrl-del:hover { background: #d4351c; color: #fff; border-color: #d4351c; }
+
+/* ── Contenteditable ── */
+[contenteditable] {
+  outline: none;
+  min-height: 1.2em;
+  cursor: text;
+}
+[contenteditable]:focus { outline: 3px solid #ffdd00; outline-offset: 2px; }
+[contenteditable]:empty::before {
+  content: attr(data-ph);
+  color: #bbb;
+  pointer-events: none;
+  font-style: italic;
+}
+
+/* ── Toggle / metadata controls (only visible in editor, hidden in print) ── */
+.nb-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 4px 6px 5px;
+  background: #f0f4ff;
+  border: 1px solid #c5d0ea;
+  border-radius: 2px;
+  margin-bottom: 6px;
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 11.5px;
+  color: #003476;
+}
+
+.nb-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.nb-toggle-label input[type="checkbox"] { cursor: pointer; margin: 0; }
+
+.nb-meta input[type="text"] {
+  border: 1px solid #b1b4b6;
+  padding: 2px 6px;
+  font-size: 11.5px;
+  font-family: 'Roboto', system-ui, sans-serif;
+  border-radius: 2px;
+  width: 90px;
+}
+
+.nb-uuid {
+  font-size: 10px;
+  color: #767676;
+  font-family: monospace;
+  margin-right: 6px;
+}
+
+/* ══════════════════════════════════════════════════
+   BLOCK: ΑΡΙΘΜΟΣ ΝΟΜΟΥ
+   ══════════════════════════════════════════════════ */
+
+.nb-block--arithmos-nomou {
+  text-align: center;
+  text-transform: uppercase;
+  padding-bottom: 1.4em;
+  margin-bottom: 1.8em;
+  border-bottom: 1.5px solid #0b0c0c;
+}
+
+.nb-nomou-num {
+  font-size: 12pt; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 0.55em;
+}
+
+.nb-nomou-title {
+  font-size: 13.5pt; font-weight: 700;
+  line-height: 1.35; margin-bottom: 0.5em;
+}
+
+.nb-nomou-subtitle {
+  font-size: 10.5pt; font-style: italic;
+  color: #505a5f; margin-bottom: 0.4em;
+  min-height: 1.2em;
+}
+
+.nb-nomou-date { font-size: 10pt; color: #505a5f; }
+
+/* ══════════════════════════════════════════════════
+   BLOCK: ΠΡΟΟΙΜΙΟ
+   ══════════════════════════════════════════════════ */
+
+.nb-block--prooimio { margin-bottom: 1.4em; }
+
+.nb-section-tag {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 8.5pt; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: #505a5f; margin-bottom: 0.35em;
+}
+
+.nb-section-tag.govuk-heading-s {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
+.nb-prooimio-body {
+  font-style: italic;
+  text-align: justify; hyphens: auto;
+}
+
+/* ══════════════════════════════════════════════════
+   BLOCK: ΑΙΤΙΟΛΟΓΙΚΗ ΣΚΕΨΗ
+   ══════════════════════════════════════════════════ */
+
+.nb-block--aitiologiki {
+  display: flex; gap: 0.55em;
+  margin-bottom: 0.55em;
+  padding-left: 0.4em;
+}
+
+.nb-ait-num {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-weight: 700; font-size: 10pt;
+  flex-shrink: 0; min-width: 1.8em; padding-top: 0.05em;
+}
+
+.nb-ait-body {
+  font-style: italic; font-size: 10.5pt;
+  text-align: justify; hyphens: auto;
+}
+
+/* ══════════════════════════════════════════════════
+   BLOCKS: ΜΕΡΟΣ / ΚΕΦΑΛΑΙΟ / ΤΜΗΜΑ
+   ══════════════════════════════════════════════════ */
+
+.nb-block--meros,
+.nb-block--kefalaio,
+.nb-block--tmima {
+  text-align: center;
+  margin-top: 2.2em; margin-bottom: 0.7em;
+}
+
+.nb-struct-display {
+  font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nb-struct-display.govuk-heading-s {
+  margin-top: 0;
+  margin-bottom: 0.25em;
+}
+
+.nb-block--meros    .nb-struct-display { font-size: 13pt; }
+.nb-block--kefalaio .nb-struct-display { font-size: 12pt; }
+.nb-block--tmima    .nb-struct-display { font-size: 11pt; }
+
+.nb-struct-name-val { font-weight: 700; display: block; margin-top: 0.1em; }
+.nb-block--meros    .nb-struct-name-val { font-size: 12pt; }
+.nb-block--kefalaio .nb-struct-name-val { font-size: 11pt; }
+.nb-block--tmima    .nb-struct-name-val { font-size: 10.5pt; }
+
+.nb-struct-name-ce {
+  min-width: 120px;
+  border-bottom: 1px dashed #003476;
+  display: inline-block;
+}
+
+/* ══════════════════════════════════════════════════
+   BLOCK: ΑΡΘΡΟ
+   ══════════════════════════════════════════════════ */
+
+.nb-block--arthro {
+  margin-top: 1.8em; margin-bottom: 0.4em;
+}
+
+.nb-arthro-display { text-align: center; margin-bottom: 0.45em; }
+
+.nb-arthro-num-label {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-weight: 700; font-size: 11pt;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.nb-arthro-num-label.govuk-heading-s {
+  margin-top: 0;
+  margin-bottom: 0.3em;
+}
+
+.nb-arthro-title-field {
+  font-weight: 700; font-style: italic; font-size: 11pt;
+  margin-top: 0.15em; text-align: center;
+}
+
+/* ── Paragraphs ── */
+
+.nb-paras-list { margin-top: 0.4em; }
+
+.nb-para { margin-bottom: 0.35em; }
+
+.nb-para-row {
+  display: flex; gap: 0.4em; align-items: flex-start;
+}
+
+.nb-para-num {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-weight: 700; flex-shrink: 0; min-width: 1.6em;
+  padding-top: 0.05em; font-size: 11pt;
+}
+
+.nb-para-body { text-align: justify; hyphens: auto; flex: 1; }
+
+.nb-para-actions {
+  display: flex; gap: 2px; align-items: flex-start;
+  flex-shrink: 0; padding-top: 2px;
+  opacity: 0; pointer-events: none; transition: opacity 0.1s;
+}
+.nb-para:hover .nb-para-actions { opacity: 1; pointer-events: auto; }
+
+/* ── Sub-paragraphs (α β γ) ── */
+
+.nb-subparas-list { padding-left: 1.6em; margin-top: 0.2em; }
+
+.nb-subpara { margin-bottom: 0.25em; }
+
+.nb-subpara-row {
+  display: flex; gap: 0.4em; align-items: flex-start;
+}
+
+.nb-subpara-num {
+  font-family: 'Roboto', system-ui, sans-serif;
+  flex-shrink: 0; min-width: 2em; padding-top: 0.05em;
+  font-size: 11pt;
+}
+
+.nb-subpara-body { text-align: justify; hyphens: auto; flex: 1; }
+
+.nb-subpara-actions {
+  display: flex; gap: 2px; align-items: flex-start;
+  flex-shrink: 0; padding-top: 2px;
+  opacity: 0; pointer-events: none; transition: opacity 0.1s;
+}
+.nb-subpara:hover .nb-subpara-actions { opacity: 1; pointer-events: auto; }
+
+/* ── Sub-sub-paragraphs (αα ββ) ── */
+
+.nb-subsubparas-list { padding-left: 2em; margin-top: 0.2em; }
+
+.nb-subsubpara {
+  display: flex; gap: 0.4em; align-items: flex-start;
+  margin-bottom: 0.2em;
+}
+
+.nb-subsubpara-num {
+  font-family: 'Roboto', system-ui, sans-serif;
+  flex-shrink: 0; min-width: 2.4em; padding-top: 0.05em;
+  font-size: 11pt;
+}
+
+.nb-subsubpara-body { text-align: justify; hyphens: auto; flex: 1; }
+
+.nb-subsubpara-actions {
+  opacity: 0; pointer-events: none; transition: opacity 0.1s; flex-shrink: 0;
+}
+.nb-subsubpara:hover .nb-subsubpara-actions { opacity: 1; pointer-events: auto; }
+
+/* ── Inline add/delete buttons inside article ── */
+
+.nb-inline-btn {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 11px; color: #1d70b8;
+  background: none; border: 1px dashed #1d70b8;
+  border-radius: 2px; padding: 2px 7px; cursor: pointer;
+  margin-top: 6px; display: inline-block;
+}
+.nb-inline-btn:hover { background: #e8f1fb; }
+
+.nb-inline-btn-sm {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 10px; color: #1d70b8;
+  background: none; border: 1px dashed #1d70b8;
+  border-radius: 2px; padding: 1px 5px; cursor: pointer;
+}
+.nb-inline-btn-sm:hover { background: #e8f1fb; }
+
+.nb-inline-del {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 10px; color: #d4351c;
+  background: none; border: 1px solid #f4cdc6;
+  border-radius: 2px; padding: 1px 4px; cursor: pointer;
+}
+.nb-inline-del:hover { background: #d4351c; color: #fff; }
+
+/* ── Ερμηνευτική inside article ── */
+
+.nb-arthro-ermineytiki {
+  margin-top: 0.8em;
+  border-top: 1px dashed #c5d0ea;
+  padding-top: 0.6em;
+}
+
+.nb-arthro-ermineytiki .nb-meta {
+  background: none; border: none; padding: 0; margin-bottom: 0;
+}
+
+.nb-ermineytiki-block {
+  padding: 0.7em 1em 0.8em;
+  border-left: 3px solid #003476;
+  background: #f5f7fb;
+  margin-top: 0.4em;
+}
+
+.nb-ermineytiki-block-label {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 8.5pt; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: #003476; margin-bottom: 0.4em;
+}
+
+.nb-ermineytiki-block-label.govuk-heading-s {
+  margin-top: 0;
+}
+
+.nb-ermineytiki-body-ce {
+  font-size: 10.5pt;
+  text-align: justify; hyphens: auto;
+}
+
+/* ══════════════════════════════════════════════════
+   BLOCK: STANDALONE ΕΡΜΗΝΕΥΤΙΚΗ ΔΗΛΩΣΗ
+   ══════════════════════════════════════════════════ */
+
+.nb-block--ermineytiki {
+  margin: 1.3em 0;
+  padding: 0.8em 1em 0.9em;
+  border-left: 3px solid #003476;
+  background: #f5f7fb;
+}
+
+/* ══════════════════════════════════════════════════
+   BLOCKS: ΜΕΤΑΒΑΤΙΚΕΣ / ΤΕΛΙΚΕΣ
+   ══════════════════════════════════════════════════ */
+
+.nb-block--metabatikes,
+.nb-block--telikes {
+  margin-top: 2.4em; margin-bottom: 0.9em;
+  text-align: center;
+  padding-top: 0.9em;
+  border-top: 1px solid #b1b4b6;
+}
+
+.nb-diataxi-label {
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 11pt; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+/* ══════════════════════════════════════════════════
+   UTILITY
+   ══════════════════════════════════════════════════ */
+
+.nb-hidden { display: none !important; }
+
+/* ══════════════════════════════════════════════════
+   PRINT
+   ══════════════════════════════════════════════════ */
+
+@page { size: A4 portrait; margin: 20mm; }
+
+@media print {
+  html,
+  body {
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #nomos-builder,
+  #nomos-builder * {
+    visibility: visible !important;
+  }
+
+  #nomos-builder {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .nb-toolbar,
+  .nb-meta,
+  .nb-block-ctrl-bar,
+  .nb-block-menu-btn,
+  .nb-block:hover,
+  .nb-arthro-ermineytiki > .nb-meta,
+  .nb-inline-btn,
+  .nb-inline-btn-sm,
+  .nb-inline-del,
+  .nb-para-actions,
+  .nb-subpara-actions,
+  .nb-subsubpara-actions,
+  .nb-uuid,
+  .nb-modal-backdrop {
+    display: none !important;
+  }
+
+  .nb-block:hover { outline: none !important; }
+  .nb-canvas { background: none !important; padding: 0 !important; }
+  .nb-paper {
+    box-shadow: none !important;
+    max-width: none !important;
+    width: auto !important;
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+  .nb-empty { display: none !important; }
+}
