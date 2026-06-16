@@ -107,30 +107,7 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </div>
 
-    <div class="nb-modal-backdrop nb-hidden" id="nb-block-edit-modal" role="dialog" aria-modal="true" aria-labelledby="nb-block-edit-modal-title">
-      <div class="nb-modal" role="document">
-        <div class="nb-modal-content">
-          <h2 class="govuk-heading-m" id="nb-block-edit-modal-title">Επεξεργασία μπλοκ</h2>
-          <p class="govuk-body" id="nb-block-edit-modal-desc">Επεξεργαστείτε τις ιδιότητες αυτού του μπλοκ μέσω των πεδίων.</p>
-          <div class="nb-modal-field" id="nb-block-edit-number-field">
-            <label class="govuk-label" for="nb-block-edit-number">Αριθμός / Ταυτότητα</label>
-            <input class="govuk-input" id="nb-block-edit-number" type="text" />
-          </div>
-          <div class="nb-modal-field" id="nb-block-edit-title-field">
-            <label class="govuk-label" for="nb-block-edit-title">Τίτλος / Όνομα</label>
-            <input class="govuk-input" id="nb-block-edit-title" type="text" />
-          </div>
-          <div class="nb-modal-field" id="nb-block-edit-body-field">
-            <label class="govuk-label" for="nb-block-edit-body">Κείμενο μπλοκ</label>
-            <textarea class="govuk-textarea" id="nb-block-edit-body" rows="6"></textarea>
-          </div>
-          <div class="nb-modal-actions">
-            <button class="govuk-button" id="nb-block-edit-save" type="button">Αποθήκευση</button>
-            <button class="govuk-button govuk-button--secondary" id="nb-block-edit-cancel" type="button">Ακύρωση</button>
-          </div>
-        </div>
-      </div>
-    </div>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,opsz,wght@0,6..18,400;0,6..18,700;1,6..18,400;1,6..18,700&display=swap');
 
@@ -1396,14 +1373,6 @@ const nameInput = makeEditableText('span', 'nb-struct-name-ce nb-hidden', 'Τί�
   const lawSaveBtn = document.getElementById('nb-law-save') as HTMLButtonElement;
   const lawCancelBtn = document.getElementById('nb-law-cancel') as HTMLButtonElement;
 
-  const objectEditorModal = document.getElementById('nb-object-editor-modal') as HTMLElement;
-  const objectEditorTitle = document.getElementById('nb-object-editor-modal-title') as HTMLElement;
-  const objectEditorDesc = document.getElementById('nb-object-editor-modal-desc') as HTMLElement;
-  const objectEditorText = document.getElementById('nb-object-editor-text') as HTMLTextAreaElement;
-  const objectEditorSave = document.getElementById('nb-object-editor-save') as HTMLButtonElement;
-  const objectEditorCancel = document.getElementById('nb-object-editor-cancel') as HTMLButtonElement;
-  let objectEditorTarget: HTMLElement | null = null;
-
   let activeBlock: HTMLElement | null = null;
 
   document.getElementById('btn-print')!.addEventListener('click', () => window.print());
@@ -1463,9 +1432,6 @@ const nameInput = makeEditableText('span', 'nb-struct-name-ce nb-hidden', 'Τί�
     if (activeBlock.dataset.type === 'arithmos-nomou') {
       populateLawModal(activeBlock);
       openModal(lawNumberModal);
-    } else {
-      const editable = activeBlock.querySelector<HTMLElement>('[data-editable="true"]');
-      if (editable) openObjectEditor(editable);
     }
     closeModal(blockActionModal);
   });
@@ -1529,21 +1495,9 @@ const nameInput = makeEditableText('span', 'nb-struct-name-ce nb-hidden', 'Τί�
     lawDateInput.value = block?.querySelector<HTMLElement>('.nb-nomou-date')?.textContent?.trim() ?? '(ΦΕΚ Α΄ ___/__.__.2025)';
   }
 
-  function openObjectEditor(target: HTMLElement) {
-    objectEditorTarget = target;
-    objectEditorTitle.textContent = target.dataset.editTitle || 'Επεξεργασία αντικειμένου';
-    objectEditorDesc.textContent = target.dataset.editDesc || 'Επεξεργαστείτε το επιλεγμένο αντικείμενο.';
-    objectEditorText.value = target.textContent?.trim() ?? '';
-    openModal(objectEditorModal);
-  }
-
-  function makeEditableText(tag: string, cls: string, text: string, placeholder: string, label: string): HTMLElement {
-    const el = ce(tag, cls + ' nb-editable', {}, text);
-    el.dataset.editable = 'true';
+  function makeEditableText(tag: string, cls: string, text: string, placeholder: string, _label: string): HTMLElement {
+    const el = ce(tag, cls, {contenteditable: 'true'}, text);
     el.dataset.ph = placeholder;
-    el.dataset.editTitle = `Επεξεργασία ${label}`;
-    el.dataset.editDesc = `Κάντε κλικ για να επεξεργαστείτε το ${label.toLowerCase()}.`;
-    el.addEventListener('click', () => openObjectEditor(el));
     return el;
   }
 
