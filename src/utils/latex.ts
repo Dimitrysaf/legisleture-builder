@@ -189,6 +189,10 @@ function wrapperToLatex(wrapper: HTMLElement, instances: Map<string, TemplateIns
     }
     case 'toc':
       return `\\tableofcontents`;
+    case 'interpretive': {
+      const body = richToLatex(d.content ?? '');
+      return `\\begin{quote}\n\\textit{\\textbf{Ερμηνευτική δήλωση:} ${body}}\n\\end{quote}`;
+    }
     default:
       return `% [${inst.templateId}]`;
   }

@@ -20,6 +20,7 @@ import { closingTemplate } from './built-in/closing';
 import { finalArticleTemplate } from './built-in/final-article';
 import { footnoteTemplate } from './built-in/footnote';
 import { tocTemplate } from './built-in/toc';
+import { interpretiveTemplate } from './built-in/interpretive';
 
 const STORAGE_KEY = 'nb_custom_templates';
 
@@ -45,6 +46,7 @@ const registry = new Map<string, Template>([
   ['final-article', finalArticleTemplate],
   ['footnote', footnoteTemplate],
   ['toc', tocTemplate],
+  ['interpretive', interpretiveTemplate],
 ]);
 
 export function getTemplate(id: string): Template | undefined {

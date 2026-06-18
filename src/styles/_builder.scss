@@ -1301,6 +1301,40 @@ body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
 }
 
 /* ══════════════════════════════════════════════════
+   INTERPRETIVE DECLARATION (Ερμηνευτική δήλωση)
+   ══════════════════════════════════════════════════ */
+
+.nb-block--interpretive { margin: 1px; }
+
+.nb-interpretive {
+  position: relative;
+  border-top: 1.5px solid #374151;
+  padding: 1px;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 1.5px;
+    height: 2.2em;
+    background: linear-gradient(to bottom, #374151 0%, transparent 100%);
+  }
+
+  &::before { left: 0; }
+  &::after  { right: 0; }
+}
+
+.nb-interpretive-body {
+  font-size: 9.5pt;
+  line-height: 1.65;
+
+  em { font-style: italic; }
+
+  p { margin: 0 0 4px; }
+}
+
+/* ══════════════════════════════════════════════════
    TABLE OF CONTENTS (Πίνακας Περιεχομένων)
    ══════════════════════════════════════════════════ */
 

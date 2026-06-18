@@ -224,6 +224,14 @@ body {
 .nb-toc-item--article, .nb-toc-item--final-article { padding-left: 36px; font-size: 10pt; }
 .nb-toc-item--annex { font-weight: 700; margin-top: 6px; }
 .nb-toc-item--transitional { padding-left: 36px; font-size: 10pt; font-style: italic; }
+.nb-block--interpretive { margin: 1px; }
+.nb-interpretive { position: relative; border-top: 1.5px solid #374151; padding: 1px; }
+.nb-interpretive::before, .nb-interpretive::after { content: ''; position: absolute; top: 0; width: 1.5px; height: 2.2em; background: linear-gradient(to bottom, #374151 0%, transparent 100%); }
+.nb-interpretive::before { left: 0; }
+.nb-interpretive::after { right: 0; }
+.nb-interpretive-body { font-size: 9.5pt; line-height: 1.65; }
+.nb-interpretive-body em { font-style: italic; }
+.nb-interpretive-body p { margin: 0 0 4px; }
 `.trim();
 
 function cloneForExport(paper: HTMLElement): HTMLElement {

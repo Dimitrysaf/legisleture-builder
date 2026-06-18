@@ -1,0 +1,141 @@
+import { state } from './state';
+import { showSaveStatus } from './toast';
+import { loadFromSaveFile } from './blocks';
+import { serializeDocument, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile } from '../utils/fileOps';
+import { generateLatex } from '../utils/latex';
+import { loadFekMeta, hasFekMeta } from '../utils/fekMeta';
+import { parseLaTeX } from '../utils/latexImport';
+
+function saveAsJson(): void {
+  const data = serializeDocument(state.paper, state.instances);
+  downloadBlob(JSON.stringify(data, null, 2), 'nomos.json', 'application/json');
+}
+
+function exportHtmlFile(): void {
+  downloadBlob(exportHtml(state.paper), 'nomos.html', 'text/html');
+}
+
+async function exportFekHtmlFile(): Promise<void> {
+  const meta = loadFekMeta();
+  const html = await exportFekHtml(state.paper, meta);
+  downloadBlob(html, 'nomos-fek.html', 'text/html');
+}
+
+function exportLatexFile(): void {
+  downloadBlob(generateLatex(state.paper, state.instances), 'nomos.tex', 'text/plain');
+}
+
+function exportTxtFile(): void {
+  downloadBlob(exportTxt(state.paper), 'nomos.txt', 'text/plain');
+}
+
+function printDocument(): void {
+  const meta = loadFekMeta();
+  const html = buildDocHtml(state.paper, hasFekMeta(meta) ? meta : null);
+  const popup = window.open('', '_blank');
+  if (!popup) {
+    alert(
+      'Ο browser απέκλεισε το παράθυρο εκτύπωσης.\n' +
+      'Παρακαλώ επιτρέψτε τα popups για αυτή τη σελίδα και ξαναπροσπαθήστε.',
+    );
+    return;
+  }
+  popup.document.open();
+  popup.document.write(html);
+  popup.document.close();
+  setTimeout(() => { popup.focus(); popup.print(); }, 600);
+}
+
+export function initFileMenu(): void {
+  const importBtn = document.getElementById('nb-import-btn');
+  const importInput = document.getElementById('nb-import-input') as HTMLInputElement | null;
+  const trigger = document.getElementById('nb-export-trigger');
+  const menu = document.getElementById('nb-file-menu');
+
+  importBtn?.addEventListener('click', () => importInput?.click());
+
+  importInput?.addEventListener('change', async () => {
+    const file = importInput!.files?.[0];
+    if (!file) return;
+
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      alert('Αδύνατη η ανάγνωση του αρχείου από τον browser.');
+      importInput!.value = '';
+      return;
+    }
+
+    const isTeX = /\.(tex|latex)$/i.test(file.name);
+
+    if (isTeX) {
+      try {
+        const saveFile = parseLaTeX(text);
+        if (saveFile.blocks.length === 0) {
+          alert(`Το αρχείο «${file.name}» δεν περιείχε αναγνωρίσιμα blocks.\n\nΒεβαιωθείτε ότι εξήχθη από αυτή την εφαρμογή.`);
+          importInput!.value = '';
+          return;
+        }
+        loadFromSaveFile(saveFile);
+        showSaveStatus('Φορτώθηκε από LaTeX');
+      } catch (err) {
+        console.error('[import tex]', err);
+        alert('Σφάλμα κατά την ανάλυση του .tex αρχείου. Λεπτομέρειες στην κονσόλα.');
+      }
+    } else {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        alert(
+          `Το αρχείο «${file.name}» δεν αναγνωρίστηκε.\n\n` +
+          'Η Εισαγωγή δέχεται:\n• Αρχεία .json  (από «Αποθήκευση ως JSON»)\n• Αρχεία .tex   (LaTeX εξαγωγή από αυτή την εφαρμογή)',
+        );
+        importInput!.value = '';
+        return;
+      }
+
+      if (!isSaveFile(parsed)) {
+        alert(
+          `Το αρχείο «${file.name}» δεν είναι έγκυρο αρχείο αποθήκευσης.\n\n` +
+          'Βεβαιωθείτε ότι επιλέξατε αρχείο .json που εξήχθη από «Αποθήκευση ως JSON».',
+        );
+        importInput!.value = '';
+        return;
+      }
+
+      try {
+        loadFromSaveFile(parsed);
+        showSaveStatus('Φορτώθηκε επιτυχώς');
+      } catch (err) {
+        console.error('[import json]', err);
+        alert('Σφάλμα κατά την ανακατασκευή του εγγράφου. Λεπτομέρειες στην κονσόλα.');
+      }
+    }
+
+    importInput!.value = '';
+  });
+
+  trigger?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu?.toggleAttribute('hidden');
+  });
+
+  document.addEventListener('click', () => menu?.setAttribute('hidden', ''));
+  menu?.addEventListener('click', (e) => e.stopPropagation());
+
+  menu?.querySelectorAll<HTMLButtonElement>('[data-file-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      menu!.setAttribute('hidden', '');
+      switch (btn.dataset.fileAction) {
+        case 'save-json':       saveAsJson(); break;
+        case 'export-html':     exportHtmlFile(); break;
+        case 'export-fek-html': exportFekHtmlFile(); break;
+        case 'export-latex':    exportLatexFile(); break;
+        case 'export-txt':      exportTxtFile(); break;
+        case 'export-pdf':      printDocument(); break;
+      }
+    });
+  });
+}
