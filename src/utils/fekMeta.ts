@@ -41,7 +41,7 @@ export function buildFekHeaderHtml(meta: FekMeta, coatOfArmsSrc: string): string
     : `<div class="nb-fek-emblem"><img src="${coatOfArmsSrc}" alt="Εθνόσημο" class="nb-fek-emblem-img"></div>`;
 
   const metaRight = [
-    meta.teuchos   ? `ΤΕΥΧΟΣ ${meta.teuchos}` : '',
+    meta.teuchos   ? `Τεύχος ${meta.teuchos}` : '',
     meta.arithmos  ? `Αρ. Φύλλου ${meta.arithmos}` : '',
     meta.hmeromhnia ? meta.hmeromhnia : '',
   ].filter(Boolean).join(' · ');

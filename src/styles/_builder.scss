@@ -620,20 +620,12 @@ body[data-nb-mode="code"] .nb-canvas {
    PREVIEW PAGES  (replaces .nb-paper in preview mode)
    ══════════════════════════════════════════════════ */
 
-.nb-preview-pages {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
+.nb-preview-iframe {
   width: 100%;
-}
-
-// Applied together with .nb-paper: inherits all paper styles,
-// overrides height to strict A4 and clips overflow
-.nb-preview-page-item {
-  height: 297mm !important;
-  overflow: hidden;
-  flex-shrink: 0;
+  border: none;
+  display: block;
+  background: #d1d5db;
+  min-height: calc(100vh - 60px);
 }
 
 /* ══════════════════════════════════════════════════
@@ -871,7 +863,7 @@ body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
   // Hide all editor chrome
   .drawer-side, .nb-mode-bar, .nb-restore-banner,
   .nb-page-add-btn, .nb-block-actions, .nb-block--note,
-  .nb-code-panel, .nb-preview-pages { display: none !important; }
+  .nb-code-panel, .nb-preview-pages, .nb-preview-iframe { display: none !important; }
 
   // Paper: full-width, no decoration
   #nb-paper {

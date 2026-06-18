@@ -8,7 +8,7 @@ import { countBlocksOfType, getSubParaDepth, toGreekSubNum, renumberDocument } f
 import { registerEntry, unregisterEntry } from '../utils/docRegistry';
 import { generateLatex } from '../utils/latex';
 import {
-  serializeDocument, exportHtml, exportFekHtml, exportTxt, downloadBlob, isSaveFile,
+  serializeDocument, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile,
   type SaveFile, type SavedBlock,
 } from '../utils/fileOps';
 import { parseLaTeX } from '../utils/latexImport';
@@ -242,8 +242,9 @@ function setMode(mode: AppMode): void {
   const canvas = document.getElementById('nb-canvas');
   const codePanel = document.getElementById('nb-code-panel');
 
-  // Always tear down any preview pages from a previous preview visit
-  document.querySelector('.nb-preview-pages')?.remove();
+  // Hide any leftover preview iframe from previous visit
+  const existingIframe = document.getElementById('nb-preview-iframe') as HTMLIFrameElement | null;
+  if (existingIframe) existingIframe.style.display = 'none';
   paper.style.display = '';
 
   if (mode === 'code') {
@@ -258,9 +259,20 @@ function setMode(mode: AppMode): void {
 
     if (mode === 'preview') {
       paper.style.display = 'none';
-      const pagesEl = buildPreviewPages();
-      // Insert right before the paper element so canvas padding and layout apply
-      canvas?.insertBefore(pagesEl, paper);
+      let iframe = document.getElementById('nb-preview-iframe') as HTMLIFrameElement | null;
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'nb-preview-iframe';
+        iframe.className = 'nb-preview-iframe';
+        canvas?.insertBefore(iframe, paper);
+      }
+      iframe.style.display = 'block';
+      const meta = loadFekMeta();
+      iframe.srcdoc = buildDocHtml(paper, hasFekMeta(meta) ? meta : null);
+      iframe.onload = () => {
+        const body = (iframe as HTMLIFrameElement).contentDocument?.body;
+        if (body) (iframe as HTMLIFrameElement).style.height = body.scrollHeight + 40 + 'px';
+      };
     }
   }
 }
@@ -575,7 +587,8 @@ function exportTxtFile(): void {
 // dialog there. This avoids every editor-layout issue: no padding leakage,
 // no UI chrome, no overflow-hidden conflicts — just the document.
 function printDocument(): void {
-  const html = exportHtml(paper);
+  const meta = loadFekMeta();
+  const html = buildDocHtml(paper, hasFekMeta(meta) ? meta : null);
   const popup = window.open('', '_blank');
   if (!popup) {
     alert(

@@ -172,6 +172,12 @@ function cloneForExport(paper: HTMLElement): HTMLElement {
   return clone;
 }
 
+const SCREEN_CSS = `
+@media screen {
+  html { background: #d1d5db; }
+  body { max-width: 210mm; margin: 20px auto; box-shadow: 0 4px 20px rgba(0,0,0,.3); min-height: 297mm; }
+}`.trim();
+
 function wrapHtmlDoc(title: string, headerHtml: string, bodyInner: string): string {
   return `<!DOCTYPE html>
 <html lang="el">
@@ -179,11 +185,21 @@ function wrapHtmlDoc(title: string, headerHtml: string, bodyInner: string): stri
 <meta charset="UTF-8">
 <title>${title}</title>
 <style>${EXPORT_CSS}</style>
+<style>${SCREEN_CSS}</style>
 </head>
 <body>
 ${headerHtml}${bodyInner}
 </body>
 </html>`;
+}
+
+export function buildDocHtml(paper: HTMLElement, meta: FekMeta | null): string {
+  const clone = cloneForExport(paper);
+  const title = meta?.titlos || 'Νόμος';
+  const headerHtml = (meta && hasFekMeta(meta))
+    ? buildFekHeaderHtml(meta, '/Coat_of_arms_of_Greece.svg') + '\n'
+    : '';
+  return wrapHtmlDoc(title, headerHtml, clone.innerHTML);
 }
 
 export function exportHtml(paper: HTMLElement): string {
