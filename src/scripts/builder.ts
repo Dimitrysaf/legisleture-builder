@@ -31,6 +31,57 @@ document.getElementById('nb-redo-btn')?.addEventListener('click', redo);
 document.getElementById('nb-add-page-top')?.addEventListener('click',    () => insertPageBreak('start'));
 document.getElementById('nb-add-page-bottom')?.addEventListener('click', () => insertPageBreak('end'));
 
+// ── Modal open/close animations ───────────────────────────────────
+
+;(() => {
+  const CLOSE_MS = 110;
+  const origClose     = HTMLDialogElement.prototype.close;
+  const origShowModal = HTMLDialogElement.prototype.showModal;
+  const timers        = new WeakMap<HTMLDialogElement, ReturnType<typeof setTimeout>>();
+
+  function cancelPending(dlg: HTMLDialogElement) {
+    const t = timers.get(dlg);
+    if (t !== undefined) { clearTimeout(t); timers.delete(dlg); }
+    dlg.classList.remove('nb-closing', 'nb-opening');
+  }
+
+  function closeWithAnim(dlg: HTMLDialogElement, retVal?: string): boolean {
+    if (!dlg.classList.contains('modal')) return false;
+    if (timers.has(dlg)) return true; // already animating out
+    cancelPending(dlg);
+    dlg.classList.add('nb-closing');
+    timers.set(dlg, setTimeout(() => {
+      timers.delete(dlg);
+      dlg.classList.remove('nb-closing');
+      origClose.call(dlg, retVal);
+    }, CLOSE_MS));
+    return true;
+  }
+
+  // Intercept form[method="dialog"] submits (✕ button + backdrop click)
+  document.addEventListener('submit', (e) => {
+    const form = e.target as HTMLFormElement;
+    if (form.getAttribute('method') !== 'dialog') return;
+    const dlg = form.closest('dialog.modal') as HTMLDialogElement | null;
+    if (dlg && closeWithAnim(dlg)) e.preventDefault();
+  }, true);
+
+  // Intercept direct JS .close() calls
+  HTMLDialogElement.prototype.close = function (returnValue?: string) {
+    if (!closeWithAnim(this, returnValue)) origClose.call(this, returnValue);
+  };
+
+  // Patch showModal: cancel any pending close, play open animation
+  HTMLDialogElement.prototype.showModal = function () {
+    cancelPending(this);
+    origShowModal.call(this);
+    if (this.classList.contains('modal')) {
+      this.classList.add('nb-opening');
+      setTimeout(() => this.classList.remove('nb-opening'), 160);
+    }
+  };
+})();
+
 // ── Init ──────────────────────────────────────────────────────────
 
 initFileMenu();

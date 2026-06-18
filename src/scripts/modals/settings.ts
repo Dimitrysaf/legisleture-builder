@@ -4,7 +4,7 @@ import { showSaveStatus } from '../toast';
 const SETTINGS_KEY = 'nb_settings_v1';
 
 interface AppSettings {
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'macos';
   fontFamily: 'serif' | 'sans';
   paperWidth: 'narrow' | 'normal';
 }
@@ -22,7 +22,8 @@ function saveSettings(s: AppSettings): void {
 }
 
 function applySettings(s: AppSettings): void {
-  document.documentElement.setAttribute('data-theme', s.theme === 'dark' ? 'dark' : 'light');
+  const themeMap: Record<AppSettings['theme'], string> = { light: 'light', dark: 'dark', macos: 'macos' };
+  document.documentElement.setAttribute('data-theme', themeMap[s.theme] ?? 'light');
   state.paper.style.fontFamily = s.fontFamily === 'sans'
     ? "system-ui, -apple-system, sans-serif"
     : "";
@@ -61,6 +62,7 @@ export function initSettingsModal(): void {
             <select name="theme" class="select select-bordered select-sm w-full">
               <option value="light" ${s.theme === 'light' ? 'selected' : ''}>Φωτεινό (Light)</option>
               <option value="dark"  ${s.theme === 'dark'  ? 'selected' : ''}>Σκοτεινό (Dark)</option>
+              <option value="macos" ${s.theme === 'macos' ? 'selected' : ''}>macOS X (Aqua)</option>
             </select>
           </div>
 
