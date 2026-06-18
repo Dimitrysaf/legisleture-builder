@@ -144,7 +144,7 @@ function bindEvents(): void {
   document.getElementById('nb-ref-confirm')?.addEventListener('click', () => {
     if (!_selectedId) return;
     const text = formatText(_selectedId, _fmt);
-    const html = `<a class="nb-ref" data-ref-id="${_selectedId}" contenteditable="false">${text}</a>`;
+    const html = `<a class="nb-ref" data-ref-id="${_selectedId}" data-ref-fmt="${_fmt}" contenteditable="false">${text}</a>`;
     _modal!.close();
     _onSelect?.(html);
   });

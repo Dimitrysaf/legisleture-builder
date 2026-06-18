@@ -509,6 +509,114 @@ body[data-nb-mode="code"] .nb-canvas {
 }
 
 /* ══════════════════════════════════════════════════
+   ΦΕΚ HEADER  (first preview page + HTML export)
+   ══════════════════════════════════════════════════ */
+
+.nb-fek-header {
+  margin-bottom: 20px;
+  font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
+}
+
+.nb-fek-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 6px;
+}
+
+.nb-fek-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.nb-fek-emblem {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  img { width: 21mm; height: auto; display: block; }
+}
+
+.nb-fek-gazette-svg {
+  width: 247px;
+  height: 21mm;
+  display: block;
+  flex-shrink: 0;
+}
+
+.nb-fek-meta-right {
+  text-align: right;
+  font-size: 9pt;
+  color: #6b7280;
+  line-height: 1.8;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-left: 8px;
+}
+
+.nb-fek-rule {
+  border: none;
+  height: 1px;
+  background: #003476;
+  margin: 4px 0 8px;
+}
+
+.nb-fek-law-title {
+  font-size: 11pt;
+  font-weight: 700;
+  text-align: left;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ── ΦΕΚ metadata modal preview box ── */
+
+.nb-fek-preview-wrap {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 10px 14px 12px;
+}
+
+.nb-fek-preview-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 10px;
+  font-family: system-ui, sans-serif;
+}
+
+.nb-fek-preview-body {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 16px 20px 10px;
+  font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
+  overflow: hidden;
+
+  // Scale the emblem and gazette SVG down so the preview fits the modal width
+  img { width: 14mm; }
+  .nb-fek-gazette-svg { width: 165px; height: 14mm; }
+  .nb-fek-meta-right { font-size: 7pt; }
+  .nb-fek-law-title { font-size: 9pt; }
+}
+
+.nb-fek-preview-empty {
+  display: block;
+  text-align: center;
+  padding: 16px 0;
+  font-size: 12px;
+  color: #9ca3af;
+  font-family: system-ui, sans-serif;
+}
+
+/* ══════════════════════════════════════════════════
    PREVIEW PAGES  (replaces .nb-paper in preview mode)
    ══════════════════════════════════════════════════ */
 

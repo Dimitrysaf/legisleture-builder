@@ -1,3 +1,6 @@
+import type { TemplateInstance } from '../templates/types';
+import { registerEntry, getEntry } from './docRegistry';
+
 const GREEK_LETTERS = ['Α', 'Β', 'Γ', 'Δ', 'Ε', 'ΣΤ', 'Ζ', 'Η', 'Θ', 'Ι', 'ΙΑ', 'ΙΒ', 'ΙΓ', 'ΙΔ', 'ΙΕ', 'ΙΣΤ', 'ΙΖ', 'ΙΗ', 'ΙΘ', 'Κ'];
 const GREEK_ORDINALS = [
   'Πρώτο', 'Δεύτερο', 'Τρίτο', 'Τέταρτο', 'Πέμπτο',
@@ -53,8 +56,182 @@ export function getSubParaDepth(container: HTMLElement): number {
   return depth + 1;
 }
 
+/**
+ * Count direct-child blocks of a given template type within a container zone.
+ * Uses :scope to avoid counting deeply nested blocks of the same type.
+ */
 export function countBlocksOfType(templateId: string, container: HTMLElement): number {
-  return Array.from(container.children).filter(
-    el => el.querySelector(`[data-template="${templateId}"]`) !== null
-  ).length;
+  return Array.from(container.children).filter(el => {
+    const block = (el as HTMLElement).querySelector(':scope > .nb-block');
+    return block?.getAttribute('data-template') === templateId;
+  }).length;
+}
+
+// ── Auto-renumbering ──────────────────────────────────────────────────────────
+
+// Display prefix used in .nb-struct-role for each auto-numbered structural type.
+const STRUCT_PREFIX: Record<string, string> = {
+  article:      'Άρθρο',
+  transitional: 'Μεταβατική Διάταξη',
+};
+
+/** Returns the direct container zone element for `key` within a block wrapper. */
+function zoneEl(wrapper: HTMLElement, key: string): HTMLElement | null {
+  return wrapper.querySelector<HTMLElement>(
+    `:scope > .nb-block > .nb-container-zone[data-container-for="${key}"]`,
+  );
+}
+
+/**
+ * Updates a block's number in memory, the docRegistry, and the DOM heading.
+ * No-ops if the number is already correct.
+ */
+function applyNumber(
+  wrapper: HTMLElement,
+  inst: TemplateInstance,
+  newNum: string,
+): void {
+  if (inst.data.number === newNum) return;
+  inst.data.number = newNum;
+  registerEntry(inst.id, inst.templateId, inst.data);
+
+  const tid = inst.templateId;
+  if (tid === 'paragraph' || tid === 'subparagraph') {
+    const numEl = wrapper.querySelector<HTMLElement>(':scope > .nb-block .nb-para-num');
+    if (numEl) numEl.textContent = `${newNum}.`;
+  } else {
+    const prefix = STRUCT_PREFIX[tid];
+    if (prefix) {
+      const roleEl = wrapper.querySelector<HTMLElement>(':scope > .nb-block .nb-struct-role');
+      if (roleEl) roleEl.textContent = `${prefix} ${newNum}`;
+    }
+  }
+}
+
+function walkSubparagraphZone(
+  container: HTMLElement,
+  instances: Map<string, TemplateInstance>,
+  depth: number,
+): void {
+  let count = 0;
+  for (const el of Array.from(container.children) as HTMLElement[]) {
+    if (!el.classList.contains('nb-block-wrapper')) continue;
+    const id = el.dataset.instanceId;
+    if (!id) continue;
+    const inst = instances.get(id);
+    if (!inst || inst.templateId !== 'subparagraph') continue;
+    count++;
+    applyNumber(el, inst, toGreekSubNum(count, depth));
+    const sub = zoneEl(el, 'subparagraphs');
+    if (sub) walkSubparagraphZone(sub, instances, depth + 1);
+  }
+}
+
+function walkParagraphZone(
+  container: HTMLElement,
+  instances: Map<string, TemplateInstance>,
+): void {
+  let count = 0;
+  for (const el of Array.from(container.children) as HTMLElement[]) {
+    if (!el.classList.contains('nb-block-wrapper')) continue;
+    const id = el.dataset.instanceId;
+    if (!id) continue;
+    const inst = instances.get(id);
+    if (!inst || inst.templateId !== 'paragraph') continue;
+    count++;
+    applyNumber(el, inst, String(count));
+    const sub = zoneEl(el, 'subparagraphs');
+    if (sub) walkSubparagraphZone(sub, instances, 1);
+  }
+}
+
+function walkStructure(
+  container: HTMLElement,
+  instances: Map<string, TemplateInstance>,
+  counters: { article: number; transitional: number },
+): void {
+  for (const el of Array.from(container.children) as HTMLElement[]) {
+    if (!el.classList.contains('nb-block-wrapper')) continue;
+    const id = el.dataset.instanceId;
+    if (!id) continue;
+    const inst = instances.get(id);
+    if (!inst) continue;
+
+    switch (inst.templateId) {
+      case 'part': {
+        const z = zoneEl(el, 'chapters');
+        if (z) walkStructure(z, instances, counters);
+        break;
+      }
+      case 'chapter': {
+        const z = zoneEl(el, 'articles');
+        if (z) walkStructure(z, instances, counters);
+        break;
+      }
+      case 'section': {
+        const z = zoneEl(el, 'articles');
+        if (z) walkStructure(z, instances, counters);
+        break;
+      }
+      case 'article': {
+        counters.article++;
+        applyNumber(el, inst, String(counters.article));
+        const z = zoneEl(el, 'body');
+        if (z) walkParagraphZone(z, instances);
+        break;
+      }
+      case 'transitional': {
+        counters.transitional++;
+        applyNumber(el, inst, String(counters.transitional));
+        const z = zoneEl(el, 'body');
+        if (z) walkParagraphZone(z, instances);
+        break;
+      }
+      case 'annex': {
+        const z = zoneEl(el, 'body');
+        if (z) walkParagraphZone(z, instances);
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Refreshes the text of all live cross-reference anchors that carry
+ * a `data-ref-fmt` attribute (set at insertion time by RefPickerModal).
+ * Refs without the attribute (from older saves) are left untouched.
+ */
+function refreshCrossRefs(paper: HTMLElement): void {
+  paper.querySelectorAll<HTMLElement>('.nb-ref[data-ref-id][data-ref-fmt]').forEach(el => {
+    const entry = getEntry(el.dataset.refId!);
+    if (!entry) return;
+    let text: string;
+    switch (el.dataset.refFmt) {
+      case 'lower':    text = entry.label.toLowerCase(); break;
+      case 'genitive': text = entry.genLabel.toLowerCase(); break;
+      case 'abbr':     text = entry.abbrLabel; break;
+      case 'number':   text = entry.number; break;
+      default:         text = entry.label; break;
+    }
+    el.textContent = text;
+  });
+}
+
+/**
+ * Walks the entire document tree and reassigns sequential numbers to:
+ *   - articles (globally continuous arabic)
+ *   - transitional provisions (globally continuous arabic, separate counter)
+ *   - paragraphs (arabic, reset per article/transitional)
+ *   - subparagraphs (Greek lowercase, reset per paragraph, depth-aware)
+ *
+ * Parts, chapters, sections, and annexes keep user-defined numbers.
+ * After renumbering, all live cross-reference anchors are refreshed.
+ */
+export function renumberDocument(
+  paper: HTMLElement,
+  instances: Map<string, TemplateInstance>,
+): void {
+  const counters = { article: 0, transitional: 0 };
+  walkStructure(paper, instances, counters);
+  refreshCrossRefs(paper);
 }

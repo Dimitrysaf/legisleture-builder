@@ -1,4 +1,6 @@
 import type { TemplateInstance } from '../templates/types';
+import type { FekMeta } from './fekMeta';
+import { buildFekHeaderHtml, hasFekMeta } from './fekMeta';
 
 // ── Data model ─────────────────────────────────────────────────────
 
@@ -66,29 +68,7 @@ function serializeContainer(
 
 // ── HTML export ────────────────────────────────────────────────────
 
-export function exportHtml(paper: HTMLElement): string {
-  const clone = paper.cloneNode(true) as HTMLElement;
-
-  // Strip all editor-only elements
-  clone.querySelectorAll(
-    '.nb-block-actions, .nb-block--note, .nb-pagebreak',
-  ).forEach(el => el.remove());
-  clone.querySelectorAll<HTMLElement>('[data-nb-init]').forEach(el =>
-    el.removeAttribute('data-nb-init'),
-  );
-  clone.querySelectorAll<HTMLElement>('[data-instance-id]').forEach(el =>
-    el.removeAttribute('data-instance-id'),
-  );
-
-  // CSS is a faithful copy of _builder.scss document rules.
-  // Size-limiting properties (width, max-width, min-height, box-shadow) are
-  // intentionally omitted so the output fills whatever medium it's rendered on.
-  return `<!DOCTYPE html>
-<html lang="el">
-<head>
-<meta charset="UTF-8">
-<title>Νόμος</title>
-<style>
+const EXPORT_CSS = `
 @page { size: A4 portrait; margin: 0; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0; }
 
@@ -98,10 +78,22 @@ body {
   line-height: 1.65;
   color: #0b0c0c;
   background: #ffffff;
-  padding: 40px 52px 56px;
+  padding: 20px 52px 56px;
   overflow-wrap: break-word;
   word-break: break-word;
 }
+
+/* ── ΦΕΚ Header ── */
+.nb-fek-header { margin-bottom: 20px; }
+.nb-fek-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 6px; }
+.nb-fek-identity { display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden; }
+.nb-fek-emblem { display:flex; align-items:center; flex-shrink:0; }
+.nb-fek-emblem-img,
+.nb-fek-emblem svg { width: 21mm; height: auto; display: block; }
+.nb-fek-gazette-svg { width: 247px; height: 21mm; display: block; flex-shrink: 0; }
+.nb-fek-meta-right { text-align: right; font-size: 9pt; color: #6b7280; line-height: 1.8; white-space: nowrap; flex-shrink: 0; padding-left: 8px; }
+.nb-fek-rule { border: none; height: 1px; background: #003476; margin: 4px 0 8px; }
+.nb-fek-law-title { font-size: 11pt; font-weight: 700; text-align: left; margin-top: 8px; letter-spacing: 0.02em; overflow-wrap: break-word; word-break: break-word; }
 
 /* ── Block wrappers ── */
 .nb-block-wrapper { display: block; position: relative; }
@@ -170,12 +162,55 @@ body {
 /* ── Page break ── */
 .nb-block--pagebreak { break-after: page; page-break-after: always; height: 0; overflow: hidden; }
 .nb-pagebreak        { display: none; }
-</style>
+`.trim();
+
+function cloneForExport(paper: HTMLElement): HTMLElement {
+  const clone = paper.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll('.nb-block-actions, .nb-block--note, .nb-pagebreak').forEach(el => el.remove());
+  clone.querySelectorAll<HTMLElement>('[data-nb-init]').forEach(el => el.removeAttribute('data-nb-init'));
+  clone.querySelectorAll<HTMLElement>('[data-instance-id]').forEach(el => el.removeAttribute('data-instance-id'));
+  return clone;
+}
+
+function wrapHtmlDoc(title: string, headerHtml: string, bodyInner: string): string {
+  return `<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>${EXPORT_CSS}</style>
 </head>
 <body>
-${clone.innerHTML}
+${headerHtml}${bodyInner}
 </body>
 </html>`;
+}
+
+export function exportHtml(paper: HTMLElement): string {
+  const clone = cloneForExport(paper);
+  return wrapHtmlDoc('Νόμος', '', clone.innerHTML);
+}
+
+/**
+ * Async export that embeds the ΦΕΚ header with the coat of arms SVG inline.
+ * Falls back to plain `exportHtml` if the SVG fetch fails or meta is empty.
+ */
+export async function exportFekHtml(paper: HTMLElement, meta: FekMeta): Promise<string> {
+  const clone = cloneForExport(paper);
+  const title = meta.titlos || 'Νόμος';
+
+  if (!hasFekMeta(meta)) {
+    return wrapHtmlDoc(title, '', clone.innerHTML);
+  }
+
+  let svgSrc = '/Coat_of_arms_of_Greece.svg';
+  try {
+    const resp = await fetch('/Coat_of_arms_of_Greece.svg');
+    if (resp.ok) svgSrc = await resp.text();
+  } catch { /* use URL fallback */ }
+
+  const headerHtml = buildFekHeaderHtml(meta, svgSrc);
+  return wrapHtmlDoc(title, headerHtml + '\n', clone.innerHTML);
 }
 
 // ── Plain text export ──────────────────────────────────────────────

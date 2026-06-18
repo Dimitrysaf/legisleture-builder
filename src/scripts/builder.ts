@@ -4,14 +4,18 @@ import { initToolbar } from '../components/Toolbar';
 import { openTemplateModal } from '../components/TemplateModal';
 import { openTemplatePicker } from '../components/TemplatePicker';
 import { icon, refreshIcons } from '../utils/icons';
-import { countBlocksOfType, getSubParaDepth, toGreekSubNum } from '../utils/numbering';
+import { countBlocksOfType, getSubParaDepth, toGreekSubNum, renumberDocument } from '../utils/numbering';
 import { registerEntry, unregisterEntry } from '../utils/docRegistry';
 import { generateLatex } from '../utils/latex';
 import {
-  serializeDocument, exportHtml, exportTxt, downloadBlob, isSaveFile,
+  serializeDocument, exportHtml, exportFekHtml, exportTxt, downloadBlob, isSaveFile,
   type SaveFile, type SavedBlock,
 } from '../utils/fileOps';
 import { parseLaTeX } from '../utils/latexImport';
+import {
+  loadFekMeta, saveFekMeta, hasFekMeta, buildFekHeaderHtml,
+  type FekMeta,
+} from '../utils/fekMeta';
 
 const NUMBERED_TEMPLATES = new Set(['part', 'chapter', 'section', 'article', 'paragraph']);
 
@@ -59,7 +63,7 @@ function insertBlock(
   instance: TemplateInstance,
   target: HTMLElement,
   position: 'start' | 'end' = 'end',
-  opts: { noScroll?: boolean } = {},
+  opts: { noScroll?: boolean; noRenumber?: boolean } = {},
 ): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.className = 'nb-block-wrapper';
@@ -81,6 +85,7 @@ function insertBlock(
     target.appendChild(wrapper);
   }
 
+  if (!opts.noRenumber) renumberDocument(paper, instances);
   refreshIcons();
   if (!opts.noScroll) wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   triggerAutoSave();
@@ -132,8 +137,9 @@ let currentMode: AppMode = 'edit';
 // Explicit pagebreak blocks create new pages; blocks that overflow A4 height
 // trigger automatic new pages at top-level block boundaries.
 function buildPreviewPages(): HTMLElement {
-  // .nb-paper has padding: 40px (top) and 56px (bottom)
-  const PADDING_V = 40 + 56;
+  // .nb-paper has top padding 20px (with ΦΕΚ header) or 40px, bottom 56px
+  const fekMeta = loadFekMeta();
+  const PADDING_V = (hasFekMeta(fekMeta) ? 20 : 40) + 56;
 
   // Measure actual A4 height in device pixels
   const probe = document.createElement('div');
@@ -174,8 +180,20 @@ function buildPreviewPages(): HTMLElement {
     return p;
   }
 
+  // Inject ΦΕΚ header into the first page when metadata is present
+  let firstPageInjected = false;
+  function injectFekHeaderIfNeeded(page: HTMLElement): void {
+    if (firstPageInjected || !hasFekMeta(fekMeta)) return;
+    firstPageInjected = true;
+    const headerHtml = buildFekHeaderHtml(fekMeta, '/Coat_of_arms_of_Greece.svg');
+    const headerWrapper = document.createElement('div');
+    headerWrapper.innerHTML = headerHtml;
+    page.insertBefore(headerWrapper.firstElementChild!, page.firstChild);
+  }
+
   for (const group of groups) {
     let pageEl = newPage();
+    injectFekHeaderIfNeeded(pageEl);
     let pageH = 0;
 
     for (const wrapper of group) {
@@ -367,6 +385,7 @@ function setupDropZone(container: HTMLElement): void {
     else parent.appendChild(dragSrc);
 
     hideDropLine();
+    renumberDocument(paper, instances);
     triggerAutoSave();
   });
 }
@@ -401,12 +420,20 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
 
   actions.querySelector('.nb-action-btn--up')!.addEventListener('click', () => {
     const prev = wrapper.previousElementSibling;
-    if (prev) wrapper.parentElement!.insertBefore(wrapper, prev);
+    if (prev) {
+      wrapper.parentElement!.insertBefore(wrapper, prev);
+      renumberDocument(paper, instances);
+      triggerAutoSave();
+    }
   });
 
   actions.querySelector('.nb-action-btn--down')!.addEventListener('click', () => {
     const next = wrapper.nextElementSibling;
-    if (next) next.after(wrapper);
+    if (next) {
+      next.after(wrapper);
+      renumberDocument(paper, instances);
+      triggerAutoSave();
+    }
   });
 
   if (hasContainers) {
@@ -430,6 +457,7 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
     wrapper.remove();
     instances.delete(instanceId);
     unregisterEntry(instanceId);
+    renumberDocument(paper, instances);
     triggerAutoSave();
   });
 
@@ -464,7 +492,9 @@ function triggerAutoSave(): void {
     try {
       localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
       showSaveStatus('Αποθηκεύτηκε αυτόματα');
-    } catch { /* quota exceeded */ }
+    } catch {
+      showSaveStatus('⚠ Αποτυχία αποθήκευσης — χρησιμοποιήστε Αποθήκευση ως JSON');
+    }
   }, 1800);
 }
 
@@ -500,7 +530,7 @@ function deserializeBlocks(blocks: SavedBlock[], container: HTMLElement): void {
       data: block.data,
     };
 
-    const wrapper = insertBlock(tpl.render(block.data), instance, container, 'end', { noScroll: true });
+    const wrapper = insertBlock(tpl.render(block.data), instance, container, 'end', { noScroll: true, noRenumber: true });
 
     for (const [key, childBlocks] of Object.entries(block.zones)) {
       const zone = wrapper.querySelector<HTMLElement>(`.nb-container-zone[data-container-for="${key}"]`);
@@ -512,6 +542,7 @@ function deserializeBlocks(blocks: SavedBlock[], container: HTMLElement): void {
 function loadFromSaveFile(saveFile: SaveFile): void {
   clearDocument();
   deserializeBlocks(saveFile.blocks, paper);
+  renumberDocument(paper, instances);
   refreshIcons();
 }
 
@@ -524,6 +555,12 @@ function saveAsJson(): void {
 
 function exportHtmlFile(): void {
   downloadBlob(exportHtml(paper), 'nomos.html', 'text/html');
+}
+
+async function exportFekHtmlFile(): Promise<void> {
+  const meta = loadFekMeta();
+  const html = await exportFekHtml(paper, meta);
+  downloadBlob(html, 'nomos-fek.html', 'text/html');
 }
 
 function exportLatexFile(): void {
@@ -552,6 +589,133 @@ function printDocument(): void {
   popup.document.close();
   // Give fonts & styles ~600 ms to apply before the print dialog appears
   setTimeout(() => { popup.focus(); popup.print(); }, 600);
+}
+
+// ── ΦΕΚ metadata modal ───────────────────────────────────────────
+
+const TEUCHOS_OPTIONS = ['Α΄', 'Β΄', 'Γ΄', 'Δ΄', 'ΑΑΠ', 'ΑΑΝ', 'ΥΟΔ΄', 'Δ.Δ.Σ.'];
+
+function greekDateToIso(gdate: string): string {
+  const m = gdate.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (!m) return '';
+  return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+}
+
+function isoToGreekDate(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return '';
+  return `${parseInt(m[3])}.${parseInt(m[2])}.${m[1]}`;
+}
+
+function readModalMeta(modal: HTMLDialogElement): FekMeta {
+  const rawDate = (modal.querySelector<HTMLInputElement>('[name="hmeromhnia"]')?.value ?? '').trim();
+  return {
+    teuchos:    (modal.querySelector<HTMLSelectElement>('[name="teuchos"]')?.value ?? '').trim(),
+    arithmos:   (modal.querySelector<HTMLInputElement>('[name="arithmos"]')?.value ?? '').trim(),
+    hmeromhnia: rawDate ? isoToGreekDate(rawDate) || rawDate : '',
+    titlos:     (modal.querySelector<HTMLInputElement>('[name="titlos"]')?.value ?? '').trim(),
+  };
+}
+
+function updateFekPreview(modal: HTMLDialogElement): void {
+  const preview = modal.querySelector<HTMLElement>('#nb-fek-live-preview');
+  if (!preview) return;
+  const meta = readModalMeta(modal);
+  if (!hasFekMeta(meta)) {
+    preview.innerHTML = '<span class="nb-fek-preview-empty">Συμπληρώστε τα παραπάνω πεδία για προεπισκόπηση</span>';
+    return;
+  }
+  preview.innerHTML = buildFekHeaderHtml(meta, '/Coat_of_arms_of_Greece.svg');
+}
+
+function initFekMetaModal(): void {
+  const btn = document.getElementById('nb-fek-meta-btn');
+  if (!btn) return;
+
+  let modal: HTMLDialogElement | null = null;
+
+  btn.addEventListener('click', () => {
+    if (!modal) {
+      modal = document.createElement('dialog');
+      modal.id = 'nb-fek-meta-modal';
+      modal.className = 'modal';
+      document.body.appendChild(modal);
+    }
+
+    const meta = loadFekMeta();
+    modal.innerHTML = `
+      <div class="modal-box w-11/12 max-w-2xl font-sans">
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3">✕</button>
+        </form>
+        <h3 class="font-bold text-base mb-4">Στοιχεία ΦΕΚ</h3>
+
+        <!-- Ταυτότητα ΦΕΚ: τρία πεδία σε σειρά -->
+        <div class="grid grid-cols-3 gap-3 mb-3">
+          <div class="form-control">
+            <label class="label pb-1"><span class="label-text text-xs font-semibold uppercase tracking-wide text-base-content/50">Τεύχος</span></label>
+            <select class="select select-bordered select-sm w-full" name="teuchos">
+              <option value="">—</option>
+              ${TEUCHOS_OPTIONS.map(t => `<option value="${t}" ${meta.teuchos === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-control">
+            <label class="label pb-1"><span class="label-text text-xs font-semibold uppercase tracking-wide text-base-content/50">Αρ. Φύλλου</span></label>
+            <input type="number" min="1" step="1" class="input input-bordered input-sm w-full" name="arithmos"
+              value="${meta.arithmos}" placeholder="π.χ. 1234">
+          </div>
+          <div class="form-control">
+            <label class="label pb-1"><span class="label-text text-xs font-semibold uppercase tracking-wide text-base-content/50">Ημερομηνία</span></label>
+            <input type="date" class="input input-bordered input-sm w-full" name="hmeromhnia"
+              value="${greekDateToIso(meta.hmeromhnia)}">
+          </div>
+        </div>
+
+        <!-- Τίτλος σε ξεχωριστή σειρά -->
+        <div class="form-control mb-5">
+          <label class="label pb-1"><span class="label-text text-xs font-semibold uppercase tracking-wide text-base-content/50">Τίτλος νόμου / πράξης</span></label>
+          <input type="text" class="input input-bordered input-sm w-full" name="titlos"
+            value="${meta.titlos}" placeholder="π.χ. ΝΟΜΟΣ ΥΠ' ΑΡΙΘΜ. 5123 — Τίτλος νόμου">
+        </div>
+
+        <!-- Live προεπισκόπηση -->
+        <div class="nb-fek-preview-wrap">
+          <div class="nb-fek-preview-label">Προεπισκόπηση επικεφαλίδας</div>
+          <div id="nb-fek-live-preview" class="nb-fek-preview-body">
+            <span class="nb-fek-preview-empty">Συμπληρώστε τα παραπάνω πεδία για προεπισκόπηση</span>
+          </div>
+        </div>
+
+        <div class="modal-action mt-4">
+          <form method="dialog"><button class="btn btn-ghost btn-sm">Άκυρο</button></form>
+          <button type="button" id="nb-fek-meta-clear" class="btn btn-ghost btn-sm text-error">Εκκαθάριση</button>
+          <button type="button" id="nb-fek-meta-save" class="btn btn-primary btn-sm">Αποθήκευση</button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    `;
+
+    // Live preview on any field change
+    modal.querySelectorAll<HTMLElement>('[name]').forEach(el => {
+      el.addEventListener('input', () => updateFekPreview(modal!));
+      el.addEventListener('change', () => updateFekPreview(modal!));
+    });
+    updateFekPreview(modal);
+
+    modal.querySelector('#nb-fek-meta-save')?.addEventListener('click', () => {
+      saveFekMeta(readModalMeta(modal!));
+      modal!.close();
+      showSaveStatus('Στοιχεία ΦΕΚ αποθηκεύτηκαν');
+    });
+
+    modal.querySelector('#nb-fek-meta-clear')?.addEventListener('click', () => {
+      saveFekMeta({ teuchos: '', arithmos: '', hmeromhnia: '', titlos: '' });
+      modal!.close();
+      showSaveStatus('Στοιχεία ΦΕΚ διαγράφηκαν');
+    });
+
+    modal.showModal();
+  });
 }
 
 // ── File menu & restore banner ────────────────────────────────────
@@ -639,11 +803,12 @@ function initFileMenu(): void {
     btn.addEventListener('click', () => {
       menu!.setAttribute('hidden', '');
       switch (btn.dataset.fileAction) {
-        case 'save-json':    saveAsJson(); break;
-        case 'export-html':  exportHtmlFile(); break;
-        case 'export-latex': exportLatexFile(); break;
-        case 'export-txt':   exportTxtFile(); break;
-        case 'export-pdf':   printDocument(); break;
+        case 'save-json':       saveAsJson(); break;
+        case 'export-html':     exportHtmlFile(); break;
+        case 'export-fek-html': exportFekHtmlFile(); break;
+        case 'export-latex':    exportLatexFile(); break;
+        case 'export-txt':      exportTxtFile(); break;
+        case 'export-pdf':      printDocument(); break;
       }
     });
   });
@@ -690,3 +855,4 @@ function initRestoreBanner(): void {
 
 initFileMenu();
 initRestoreBanner();
+initFekMetaModal();

@@ -2,6 +2,7 @@ import type { Template, TemplateField, TemplateInstance } from '../templates/typ
 import { icon, refreshIcons } from '../utils/icons';
 import { allFormats } from '../utils/numbering';
 import { openRefPickerModal } from './RefPickerModal';
+import { sanitizeHtml } from '../utils/sanitize';
 
 type OnConfirmFn = (html: string, instance: TemplateInstance) => void;
 
@@ -199,6 +200,17 @@ function richToolbarBtn(cmd: string, html: string, title: string): string {
 function initRichEditor(editor: HTMLElement): void {
   const toolbar = editor.closest('.border')?.querySelector<HTMLElement>('.flex');
 
+  // Intercept paste: strip all HTML except our allowlist, convert plain text to <br>
+  editor.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const html = e.clipboardData?.getData('text/html') ?? '';
+    const plain = e.clipboardData?.getData('text/plain') ?? '';
+    const content = html
+      ? sanitizeHtml(html)
+      : plain.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+    document.execCommand('insertHTML', false, content);
+  });
+
   toolbar?.querySelectorAll<HTMLButtonElement>('[data-cmd]').forEach(btn => {
     btn.addEventListener('mousedown', (e) => {
       e.preventDefault();
@@ -232,7 +244,7 @@ function collectData(modal: HTMLDialogElement): Record<string, string> {
     data[el.name] = el.value;
   });
   modal.querySelectorAll<HTMLElement>('[data-rich]').forEach(el => {
-    data[el.dataset.rich!] = el.innerHTML;
+    data[el.dataset.rich!] = sanitizeHtml(el.innerHTML);
   });
   return data;
 }

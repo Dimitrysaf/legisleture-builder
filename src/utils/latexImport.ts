@@ -1,4 +1,4 @@
-import type { SavedBlock, SaveFile } from './fileOps';
+﻿import type { SavedBlock, SaveFile } from './fileOps';
 
 // ── helpers ────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ function unesc(s: string): string {
     .replace(/\\textbackslash\{\}/g, '\\')
     .replace(/\\textasciitilde\{\}/g, '~')
     .replace(/\\textasciicircum\{\}/g, '^')
-    .replace(/~/, ' ')
+    .replace(/~/g, ' ')
     .trim();
 }
 
