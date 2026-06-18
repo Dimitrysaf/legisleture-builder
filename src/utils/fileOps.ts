@@ -69,11 +69,13 @@ function serializeContainer(
 // ── HTML export ────────────────────────────────────────────────────
 
 const EXPORT_CSS = `
-@page { size: A4 portrait; margin: 0; }
+@page { size: A4 portrait; margin: 0 0 14mm 0; }
+@page :right { @bottom-right { content: counter(page); font-size: 9pt; font-family: 'GFS Didot', Georgia, serif; color: #374151; } }
+@page :left  { @bottom-left  { content: counter(page); font-size: 9pt; font-family: 'GFS Didot', Georgia, serif; color: #374151; } }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0; }
 
 body {
-  font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
+  font-family: 'GFS Didot', 'Didot', 'Noto Serif', Georgia, 'Times New Roman', serif;
   font-size: 11.5pt;
   line-height: 1.65;
   color: #0b0c0c;
@@ -133,9 +135,17 @@ body {
 .nb-subpara-zone { padding-left: 22px; }
 
 /* ── Preamble ── */
-.nb-block--preamble { margin: 16px 0; }
-.nb-preamble        { font-style: italic; text-align: left; }
-.nb-preamble p      { margin: 4px 0; }
+.nb-block--preamble         { margin: 20px 0; }
+.nb-preamble                { font-style: italic; text-align: left; }
+.nb-preamble p              { margin: 4px 0; }
+.nb-preamble-authority      { font-style: normal; font-weight: 700; text-align: left; letter-spacing: 0.04em; margin-bottom: 12px; }
+.nb-preamble-having         { font-style: normal; font-weight: 600; margin-top: 8pt; margin-bottom: 2pt; }
+.nb-preamble-bases          { padding-left: 16pt; font-style: italic; }
+.nb-preamble-bases ol,
+.nb-preamble-bases ul       { margin: 4pt 0 4pt 20pt; }
+.nb-preamble-bases p        { margin: 2pt 0; }
+.nb-preamble-proposal       { margin-top: 10pt; font-style: italic; }
+.nb-preamble-conclusion     { font-style: normal; font-weight: 700; margin-top: 8pt; }
 
 /* ── Law reference ── */
 .nb-block--lawref { display: inline; margin: 0; }
@@ -158,6 +168,19 @@ body {
 
 /* ── Container zones ── */
 .nb-container-zone { min-height: 0; }
+
+/* ── Plain text ── */
+.nb-block--plaintext { margin: 0; padding: 0; }
+
+/* ── Image / Figure ── */
+.nb-block--image    { margin: 20px 0; }
+.nb-figure          { display: flex; flex-direction: column; margin: 0; }
+.nb-figure-img      { display: block; height: auto; max-width: 100%; border: 1px solid #e5e7eb; }
+.nb-figure-caption  { font-size: 9pt; color: #6b7280; text-align: left; margin-top: 5pt; font-style: italic; line-height: 1.4; }
+.nb-figure-num      { font-weight: 700; font-style: normal; }
+
+/* ── Two-column layout ── */
+.nb-content { column-count: 2; column-gap: 6mm; column-rule: 0.5pt solid #e5e7eb; }
 
 /* ── Page break ── */
 .nb-block--pagebreak { break-after: page; page-break-after: always; height: 0; overflow: hidden; }
@@ -184,6 +207,9 @@ function wrapHtmlDoc(title: string, headerHtml: string, bodyInner: string): stri
 <head>
 <meta charset="UTF-8">
 <title>${title}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=GFS+Didot:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <style>${EXPORT_CSS}</style>
 <style>${SCREEN_CSS}</style>
 </head>
@@ -199,7 +225,10 @@ export function buildDocHtml(paper: HTMLElement, meta: FekMeta | null): string {
   const headerHtml = (meta && hasFekMeta(meta))
     ? buildFekHeaderHtml(meta, '/Coat_of_arms_of_Greece.svg') + '\n'
     : '';
-  return wrapHtmlDoc(title, headerHtml, clone.innerHTML);
+  const bodyInner = meta?.twoColumn
+    ? `<div class="nb-content">${clone.innerHTML}</div>`
+    : clone.innerHTML;
+  return wrapHtmlDoc(title, headerHtml, bodyInner);
 }
 
 export function exportHtml(paper: HTMLElement): string {
@@ -226,7 +255,10 @@ export async function exportFekHtml(paper: HTMLElement, meta: FekMeta): Promise<
   } catch { /* use URL fallback */ }
 
   const headerHtml = buildFekHeaderHtml(meta, svgSrc);
-  return wrapHtmlDoc(title, headerHtml + '\n', clone.innerHTML);
+  const bodyInner = meta.twoColumn
+    ? `<div class="nb-content">${clone.innerHTML}</div>`
+    : clone.innerHTML;
+  return wrapHtmlDoc(title, headerHtml + '\n', bodyInner);
 }
 
 // ── Plain text export ──────────────────────────────────────────────

@@ -13,6 +13,8 @@ import { amendmentTemplate } from './built-in/amendment';
 import { annexTemplate } from './built-in/annex';
 import { transitionalTemplate } from './built-in/transitional';
 import { pagebreakTemplate } from './built-in/pagebreak';
+import { imageBlockTemplate } from './built-in/image-block';
+import { plaintextTemplate } from './built-in/plaintext';
 
 const STORAGE_KEY = 'nb_custom_templates';
 
@@ -31,6 +33,8 @@ const registry = new Map<string, Template>([
   ['lawref', lawRefTemplate],
   ['note', noteTemplate],
   ['pagebreak', pagebreakTemplate],
+  ['image-block', imageBlockTemplate],
+  ['plaintext', plaintextTemplate],
 ]);
 
 export function getTemplate(id: string): Template | undefined {

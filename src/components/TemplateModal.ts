@@ -62,6 +62,7 @@ export function openTemplateModal(
   `;
 
   _modal.querySelectorAll<HTMLElement>('[data-rich]').forEach(initRichEditor);
+  _modal.querySelectorAll<HTMLElement>('[data-image-field]').forEach(initImageField);
 
   _modal.querySelectorAll<HTMLButtonElement>('.nb-numfmt-chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -174,6 +175,40 @@ function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?
         ${hint}
       </div>`;
 
+    case 'image': {
+      const hasImg = value.startsWith('data:') || value.startsWith('http');
+      const previewInner = hasImg
+        ? `<img src="${escHtml(value)}" alt="Προεπισκόπηση" class="nb-imgfield-preview-img">`
+        : `<span class="nb-imgfield-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Δεν έχει επιλεγεί εικόνα</span></span>`;
+      return `<div class="form-control" data-field="${f.id}">
+        ${label}
+        <div class="nb-imgfield" data-image-field="${f.id}">
+          <div class="nb-imgfield-preview">${previewInner}</div>
+          <div class="nb-imgfield-actions">
+            <label class="btn btn-sm btn-outline gap-1.5 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Επιλογή εικόνας
+              <input type="file" accept="image/*" class="sr-only" data-imgfile="${f.id}">
+            </label>
+            <button type="button" class="btn btn-sm btn-ghost text-error" data-imgclear="${f.id}" ${hasImg ? '' : 'hidden'}>Αφαίρεση</button>
+          </div>
+          <input type="hidden" name="${f.id}" value="${escHtml(value)}">
+        </div>
+        ${hint}
+      </div>`;
+    }
+
+    case 'select':
+      return `<div class="form-control" data-field="${f.id}">
+        ${label}
+        <select class="select select-bordered w-full" name="${f.id}" ${f.required ? 'required' : ''}>
+          ${(f.options ?? []).map(o =>
+            `<option value="${escHtml(o.value)}" ${value === o.value ? 'selected' : ''}>${escHtml(o.label)}</option>`
+          ).join('')}
+        </select>
+        ${hint}
+      </div>`;
+
     default:
       return `<div class="form-control" data-field="${f.id}">
         ${label}
@@ -236,12 +271,61 @@ function initRichEditor(editor: HTMLElement): void {
   });
 }
 
+// ── Image field ───────────────────────────────────────────────────
+
+function initImageField(container: HTMLElement): void {
+  const fieldId   = container.dataset.imageField!;
+  const fileInput = container.querySelector<HTMLInputElement>(`[data-imgfile="${fieldId}"]`);
+  const hidden    = container.querySelector<HTMLInputElement>(`[name="${fieldId}"]`);
+  const preview   = container.querySelector<HTMLElement>('.nb-imgfield-preview');
+  const clearBtn  = container.querySelector<HTMLButtonElement>(`[data-imgclear="${fieldId}"]`);
+
+  function setImage(dataUrl: string): void {
+    if (hidden)  hidden.value = dataUrl;
+    if (preview) preview.innerHTML = `<img src="${dataUrl}" alt="Προεπισκόπηση" class="nb-imgfield-preview-img">`;
+    clearBtn?.removeAttribute('hidden');
+  }
+
+  function clearImage(): void {
+    if (hidden)   hidden.value = '';
+    if (fileInput) fileInput.value = '';
+    if (preview)  preview.innerHTML = `<span class="nb-imgfield-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Δεν έχει επιλεγεί εικόνα</span></span>`;
+    clearBtn?.setAttribute('hidden', '');
+  }
+
+  fileInput?.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const url = e.target?.result as string;
+      if (url) setImage(url);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Drag-and-drop onto the preview area
+  preview?.addEventListener('dragover', (e) => { e.preventDefault(); preview.classList.add('nb-imgfield-preview--drag'); });
+  preview?.addEventListener('dragleave', ()   => { preview.classList.remove('nb-imgfield-preview--drag'); });
+  preview?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    preview.classList.remove('nb-imgfield-preview--drag');
+    const file = e.dataTransfer?.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { const url = ev.target?.result as string; if (url) setImage(url); };
+    reader.readAsDataURL(file);
+  });
+
+  clearBtn?.addEventListener('click', clearImage);
+}
+
 // ── Data collection & validation ──────────────────────────────────
 
 function collectData(modal: HTMLDialogElement): Record<string, string> {
   const data: Record<string, string> = {};
-  modal.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[name]').forEach(el => {
-    data[el.name] = el.value;
+  modal.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('[name]').forEach(el => {
+    data[(el as HTMLElement & { name: string }).name] = el.value;
   });
   modal.querySelectorAll<HTMLElement>('[data-rich]').forEach(el => {
     data[el.dataset.rich!] = sanitizeHtml(el.innerHTML);
@@ -258,9 +342,14 @@ function validateData(
     if (!f.required) continue;
     const val = data[f.id]?.replace(/<[^>]+>/g, '').trim();
     if (!val) {
-      const fieldEl = modal.querySelector<HTMLElement>(`[data-field="${f.id}"] input, [data-field="${f.id}"] textarea, [data-field="${f.id}"] [data-rich]`);
-      fieldEl?.focus();
-      fieldEl?.classList.add('input-error', 'textarea-error', 'border-error');
+      if (f.type === 'image') {
+        const preview = modal.querySelector<HTMLElement>(`[data-field="${f.id}"] .nb-imgfield-preview`);
+        preview?.classList.add('nb-imgfield-preview--error');
+      } else {
+        const fieldEl = modal.querySelector<HTMLElement>(`[data-field="${f.id}"] input, [data-field="${f.id}"] textarea, [data-field="${f.id}"] [data-rich]`);
+        fieldEl?.focus();
+        fieldEl?.classList.add('input-error', 'textarea-error', 'border-error');
+      }
       return false;
     }
   }

@@ -11,6 +11,10 @@ import {
   serializeDocument, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile,
   type SaveFile, type SavedBlock,
 } from '../utils/fileOps';
+import {
+  pushSnapshot, undoPop, redoPop, pushRedo, pushUndoOnly, canUndo, canRedo, clearHistory,
+} from '../utils/history';
+import { listSlots, saveSlot, loadSlot, deleteSlot, slotTimestamp } from '../utils/saveSlots';
 import { parseLaTeX } from '../utils/latexImport';
 import {
   loadFekMeta, saveFekMeta, hasFekMeta, buildFekHeaderHtml,
@@ -58,13 +62,41 @@ function openInsertModal(tpl: Template, targetContainer: HTMLElement, position: 
   }, { nextN, nextLabel });
 }
 
+function captureSnapshot(): string {
+  return JSON.stringify(serializeDocument(paper, instances));
+}
+
+function applySnapshot(snap: string): void {
+  const save = JSON.parse(snap) as SaveFile;
+  clearDocument();
+  deserializeBlocks(save.blocks, paper);
+  renumberDocument(paper, instances);
+}
+
+function undo(): void {
+  const snap = undoPop();
+  if (!snap) return;
+  pushRedo(captureSnapshot());
+  applySnapshot(snap);
+  showSaveStatus('↩ Αναίρεση');
+}
+
+function redo(): void {
+  const snap = redoPop();
+  if (!snap) return;
+  pushUndoOnly(captureSnapshot());
+  applySnapshot(snap);
+  showSaveStatus('↪ Επανάληψη');
+}
+
 function insertBlock(
   html: string,
   instance: TemplateInstance,
   target: HTMLElement,
   position: 'start' | 'end' = 'end',
-  opts: { noScroll?: boolean; noRenumber?: boolean } = {},
+  opts: { noScroll?: boolean; noRenumber?: boolean; noHistory?: boolean } = {},
 ): HTMLElement {
+  if (!opts.noHistory) pushSnapshot(captureSnapshot());
   const wrapper = document.createElement('div');
   wrapper.className = 'nb-block-wrapper';
   wrapper.dataset.instanceId = instance.id;
@@ -93,6 +125,7 @@ function insertBlock(
 }
 
 function updateBlock(instanceId: string, html: string, newInstance: TemplateInstance): void {
+  pushSnapshot(captureSnapshot());
   const wrapper = document.querySelector<HTMLElement>(`[data-instance-id="${instanceId}"]`);
   if (!wrapper) return;
 
@@ -392,6 +425,7 @@ function setupDropZone(container: HTMLElement): void {
     e.preventDefault();
     e.stopPropagation();
 
+    pushSnapshot(captureSnapshot());
     const { before, parent } = pendingDrop;
     if (before) parent.insertBefore(dragSrc, before);
     else parent.appendChild(dragSrc);
@@ -433,6 +467,7 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
   actions.querySelector('.nb-action-btn--up')!.addEventListener('click', () => {
     const prev = wrapper.previousElementSibling;
     if (prev) {
+      pushSnapshot(captureSnapshot());
       wrapper.parentElement!.insertBefore(wrapper, prev);
       renumberDocument(paper, instances);
       triggerAutoSave();
@@ -442,6 +477,7 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
   actions.querySelector('.nb-action-btn--down')!.addEventListener('click', () => {
     const next = wrapper.nextElementSibling;
     if (next) {
+      pushSnapshot(captureSnapshot());
       next.after(wrapper);
       renumberDocument(paper, instances);
       triggerAutoSave();
@@ -466,6 +502,7 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
   });
 
   actions.querySelector('.nb-action-btn--delete')!.addEventListener('click', () => {
+    pushSnapshot(captureSnapshot());
     wrapper.remove();
     instances.delete(instanceId);
     unregisterEntry(instanceId);
@@ -542,7 +579,7 @@ function deserializeBlocks(blocks: SavedBlock[], container: HTMLElement): void {
       data: block.data,
     };
 
-    const wrapper = insertBlock(tpl.render(block.data), instance, container, 'end', { noScroll: true, noRenumber: true });
+    const wrapper = insertBlock(tpl.render(block.data), instance, container, 'end', { noScroll: true, noRenumber: true, noHistory: true });
 
     for (const [key, childBlocks] of Object.entries(block.zones)) {
       const zone = wrapper.querySelector<HTMLElement>(`.nb-container-zone[data-container-for="${key}"]`);
@@ -553,6 +590,7 @@ function deserializeBlocks(blocks: SavedBlock[], container: HTMLElement): void {
 
 function loadFromSaveFile(saveFile: SaveFile): void {
   clearDocument();
+  clearHistory();
   deserializeBlocks(saveFile.blocks, paper);
   renumberDocument(paper, instances);
   refreshIcons();
@@ -627,6 +665,7 @@ function readModalMeta(modal: HTMLDialogElement): FekMeta {
     arithmos:   (modal.querySelector<HTMLInputElement>('[name="arithmos"]')?.value ?? '').trim(),
     hmeromhnia: rawDate ? isoToGreekDate(rawDate) || rawDate : '',
     titlos:     (modal.querySelector<HTMLInputElement>('[name="titlos"]')?.value ?? '').trim(),
+    twoColumn:  (modal.querySelector<HTMLInputElement>('[name="twoColumn"]')?.checked ?? false),
   };
 }
 
@@ -685,10 +724,18 @@ function initFekMetaModal(): void {
         </div>
 
         <!-- Τίτλος σε ξεχωριστή σειρά -->
-        <div class="form-control mb-5">
+        <div class="form-control mb-3">
           <label class="label pb-1"><span class="label-text text-xs font-semibold uppercase tracking-wide text-base-content/50">Τίτλος νόμου / πράξης</span></label>
           <input type="text" class="input input-bordered input-sm w-full" name="titlos"
             value="${meta.titlos}" placeholder="π.χ. ΝΟΜΟΣ ΥΠ' ΑΡΙΘΜ. 5123 — Τίτλος νόμου">
+        </div>
+
+        <!-- Δίστηλη διάταξη -->
+        <div class="form-control mb-5">
+          <label class="label cursor-pointer justify-start gap-3 pb-1">
+            <input type="checkbox" name="twoColumn" class="checkbox checkbox-sm" ${meta.twoColumn ? 'checked' : ''}>
+            <span class="label-text text-xs font-semibold uppercase tracking-wide text-base-content/50">Δίστηλη διάταξη (two-column)</span>
+          </label>
         </div>
 
         <!-- Live προεπισκόπηση -->
@@ -722,7 +769,7 @@ function initFekMetaModal(): void {
     });
 
     modal.querySelector('#nb-fek-meta-clear')?.addEventListener('click', () => {
-      saveFekMeta({ teuchos: '', arithmos: '', hmeromhnia: '', titlos: '' });
+      saveFekMeta({ teuchos: '', arithmos: '', hmeromhnia: '', titlos: '', twoColumn: false });
       modal!.close();
       showSaveStatus('Στοιχεία ΦΕΚ διαγράφηκαν');
     });
@@ -864,8 +911,110 @@ function initRestoreBanner(): void {
   });
 }
 
+// ── Named save slots ──────────────────────────────────────────────
+
+function initSlotsModal(): void {
+  const btn = document.getElementById('nb-slots-btn');
+  if (!btn) return;
+  let modal: HTMLDialogElement | null = null;
+
+  function renderSlotList(modal: HTMLDialogElement): void {
+    const list = modal.querySelector<HTMLElement>('#nb-slots-list');
+    if (!list) return;
+    const slots = listSlots();
+    if (slots.length === 0) {
+      list.innerHTML = '<p class="text-sm text-base-content/50 text-center py-3">Δεν υπάρχουν αποθηκευμένες συνεδρίες.</p>';
+      return;
+    }
+    list.innerHTML = slots.map(name => `
+      <div class="nb-slot-row" data-slot="${name}">
+        <div class="nb-slot-info">
+          <span class="nb-slot-name">${name}</span>
+          <span class="nb-slot-time">${slotTimestamp(name)}</span>
+        </div>
+        <div class="nb-slot-actions">
+          <button type="button" class="btn btn-xs btn-ghost" data-slot-load="${name}">Φόρτωση</button>
+          <button type="button" class="btn btn-xs btn-ghost text-error" data-slot-delete="${name}">✕</button>
+        </div>
+      </div>`).join('');
+
+    list.querySelectorAll<HTMLButtonElement>('[data-slot-load]').forEach(b => {
+      b.addEventListener('click', () => {
+        const sf = loadSlot(b.dataset.slotLoad!);
+        if (!sf || !isSaveFile(sf)) return;
+        loadFromSaveFile(sf);
+        modal.close();
+        showSaveStatus(`Φορτώθηκε: ${b.dataset.slotLoad}`);
+      });
+    });
+    list.querySelectorAll<HTMLButtonElement>('[data-slot-delete]').forEach(b => {
+      b.addEventListener('click', () => {
+        deleteSlot(b.dataset.slotDelete!);
+        renderSlotList(modal);
+      });
+    });
+  }
+
+  btn.addEventListener('click', () => {
+    if (!modal) {
+      modal = document.createElement('dialog');
+      modal.className = 'modal';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div class="modal-box w-11/12 max-w-lg font-sans">
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3">✕</button>
+        </form>
+        <h3 class="font-bold text-base mb-4">Αποθηκευμένες Συνεδρίες</h3>
+        <div class="flex gap-2 mb-4">
+          <input type="text" id="nb-slot-name-input" class="input input-bordered input-sm flex-1"
+            placeholder="Όνομα αποθήκευσης…" maxlength="60">
+          <button type="button" id="nb-slot-save-btn" class="btn btn-primary btn-sm">Αποθήκευση</button>
+        </div>
+        <div id="nb-slots-list" class="flex flex-col gap-1 max-h-64 overflow-y-auto"></div>
+        <div class="modal-action mt-4">
+          <form method="dialog"><button class="btn btn-ghost btn-sm">Κλείσιμο</button></form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>`;
+
+    renderSlotList(modal);
+
+    modal.querySelector('#nb-slot-save-btn')?.addEventListener('click', () => {
+      const inp = modal!.querySelector<HTMLInputElement>('#nb-slot-name-input');
+      const name = inp?.value.trim();
+      if (!name) { inp?.focus(); return; }
+      saveSlot(name, serializeDocument(paper, instances));
+      if (inp) inp.value = '';
+      renderSlotList(modal!);
+      showSaveStatus(`Αποθηκεύτηκε: ${name}`);
+    });
+
+    modal.querySelector<HTMLInputElement>('#nb-slot-name-input')
+      ?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') modal!.querySelector<HTMLButtonElement>('#nb-slot-save-btn')?.click();
+      });
+
+    modal.showModal();
+  });
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────
+
+document.addEventListener('keydown', (e) => {
+  const ctrl = e.ctrlKey || e.metaKey;
+  if (!ctrl) return;
+  if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+});
+
+document.getElementById('nb-undo-btn')?.addEventListener('click', undo);
+document.getElementById('nb-redo-btn')?.addEventListener('click', redo);
+
 // ── Init ──────────────────────────────────────────────────────────
 
 initFileMenu();
 initRestoreBanner();
 initFekMetaModal();
+initSlotsModal();

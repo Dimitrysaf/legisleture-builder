@@ -5,10 +5,11 @@ export interface FekMeta {
   arithmos: string;   // Αριθμός ΦΕΚ: π.χ. 1234
   hmeromhnia: string; // Ημερομηνία: π.χ. 18.6.2026
   titlos: string;     // Τίτλος νόμου / πράξης
+  twoColumn: boolean; // Δίστηλη διάταξη ΦΕΚ
 }
 
 export const EMPTY_META: FekMeta = {
-  teuchos: '', arithmos: '', hmeromhnia: '', titlos: '',
+  teuchos: '', arithmos: '', hmeromhnia: '', titlos: '', twoColumn: false,
 };
 
 export function loadFekMeta(): FekMeta {

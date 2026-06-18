@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'textarea' | 'rich-text' | 'number' | 'container';
+export type FieldType = 'text' | 'textarea' | 'rich-text' | 'number' | 'select' | 'image' | 'container';
 
 export type TemplateCategory = 'structure' | 'content' | 'reference' | 'custom';
 
@@ -10,6 +10,7 @@ export interface TemplateField {
   placeholder?: string;
   hint?: string;
   defaultValue?: string;
+  options?: { value: string; label: string }[];
 }
 
 export interface Template {

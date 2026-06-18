@@ -4,7 +4,7 @@ import {
   Pencil, Trash2, Plus, PlusCircle, X, Eye, Menu,
   FileText, Bookmark, List, ListOrdered, Link2, Calendar,
   Building2, Gavel, Shield, ClipboardList, FilePlus, Tag,
-  Quote, Type, Save, Info,
+  Quote, Type, Save, Info, Image,
   ArrowUp, ArrowDown, CornerDownRight, GripVertical, Code,
   Hash, Replace, BookMarked, ChevronsRight, SeparatorHorizontal,
 } from 'lucide';
@@ -14,7 +14,7 @@ const ICONS = {
   Pencil, Trash2, Plus, PlusCircle, X, Eye, Menu,
   FileText, Bookmark, List, ListOrdered, Link2, Calendar,
   Building2, Gavel, Shield, ClipboardList, FilePlus, Tag,
-  Quote, Type, Save, Info,
+  Quote, Type, Save, Info, Image,
   ArrowUp, ArrowDown, CornerDownRight, GripVertical, Code,
   Hash, Replace, BookMarked, ChevronsRight, SeparatorHorizontal,
 };
@@ -56,4 +56,5 @@ export const ICON_OPTIONS: { name: string; label: string }[] = [
   { name: 'quote',         label: 'Παράθεση' },
   { name: 'type',          label: 'Κείμενο' },
   { name: 'info',          label: 'Πληροφορία' },
+  { name: 'image',         label: 'Εικόνα / Σχήμα' },
 ];
