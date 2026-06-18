@@ -133,6 +133,7 @@ function undo(): void {
   if (!snap) return;
   pushRedo(captureSnapshot());
   applySnapshot(snap);
+  markDocChanged();
   showSaveStatus('↩ Αναίρεση');
 }
 
@@ -141,6 +142,7 @@ function redo(): void {
   if (!snap) return;
   pushUndoOnly(captureSnapshot());
   applySnapshot(snap);
+  markDocChanged();
   showSaveStatus('↪ Επανάληψη');
 }
 
@@ -206,7 +208,6 @@ function updateBlock(instanceId: string, html: string, newInstance: TemplateInst
   registerEntry(instanceId, updated.templateId, updated.data);
   refreshIcons();
   triggerAutoSave();
-  if (activeModes.includes('preview')) refreshPreviewPane();
 }
 
 // ── Container zones ───────────────────────────────────────────────
@@ -518,7 +519,6 @@ function setupDropZone(container: HTMLElement): void {
     hideDropLine();
     renumberDocument(paper, instances);
     triggerAutoSave();
-    if (activeModes.includes('preview')) refreshPreviewPane();
   });
 }
 
@@ -694,7 +694,15 @@ function stripBase64FromBlocks(blocks: SavedBlock[]): { blocks: SavedBlock[]; st
   return { blocks: mapped, stripped };
 }
 
+let _docVersion = 0;
+let _lastPreviewVersion = -1;
+
+function markDocChanged(): void {
+  _docVersion++;
+}
+
 function triggerAutoSave(): void {
+  markDocChanged();
   if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(() => {
     const data = serializeDocument(paper, instances);
@@ -1326,3 +1334,11 @@ initFekMetaModal();
 initSlotsModal();
 initSettingsModal();
 applyModes(['edit']);
+
+// Live preview polling — refreshes every 2 s if document changed and preview is visible
+setInterval(() => {
+  if (activeModes.includes('preview') && _docVersion !== _lastPreviewVersion) {
+    _lastPreviewVersion = _docVersion;
+    refreshPreviewPane();
+  }
+}, 2000);
