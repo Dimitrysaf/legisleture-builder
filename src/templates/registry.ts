@@ -15,6 +15,11 @@ import { transitionalTemplate } from './built-in/transitional';
 import { pagebreakTemplate } from './built-in/pagebreak';
 import { imageBlockTemplate } from './built-in/image-block';
 import { plaintextTemplate } from './built-in/plaintext';
+import { tableTemplate } from './built-in/table';
+import { closingTemplate } from './built-in/closing';
+import { finalArticleTemplate } from './built-in/final-article';
+import { footnoteTemplate } from './built-in/footnote';
+import { tocTemplate } from './built-in/toc';
 
 const STORAGE_KEY = 'nb_custom_templates';
 
@@ -35,6 +40,11 @@ const registry = new Map<string, Template>([
   ['pagebreak', pagebreakTemplate],
   ['image-block', imageBlockTemplate],
   ['plaintext', plaintextTemplate],
+  ['table', tableTemplate],
+  ['closing', closingTemplate],
+  ['final-article', finalArticleTemplate],
+  ['footnote', footnoteTemplate],
+  ['toc', tocTemplate],
 ]);
 
 export function getTemplate(id: string): Template | undefined {

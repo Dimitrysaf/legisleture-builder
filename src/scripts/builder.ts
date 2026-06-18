@@ -39,7 +39,62 @@ initToolbar(
 
 const instances = new Map<string, TemplateInstance>();
 
+// ── TOC generation ────────────────────────────────────────────────
+
+const TOC_LEVELS = new Set(['part', 'chapter', 'section', 'article', 'final-article', 'annex', 'transitional']);
+
+function collectTocItems(
+  wrapper: HTMLElement,
+  out: { label: string; level: string }[],
+): void {
+  const id = wrapper.dataset.instanceId;
+  if (!id) return;
+  const inst = instances.get(id);
+  if (!inst) return;
+
+  if (TOC_LEVELS.has(inst.templateId)) {
+    const heading = wrapper.querySelector<HTMLElement>('.nb-struct-heading');
+    if (heading) {
+      const role = heading.querySelector<HTMLElement>('.nb-struct-role')?.textContent?.trim() ?? '';
+      const title = heading.querySelector<HTMLElement>('.nb-struct-title')?.textContent?.trim() ?? '';
+      const label = title ? `${role} — ${title}` : role;
+      if (label) out.push({ label, level: inst.templateId });
+    }
+  }
+
+  wrapper.querySelectorAll<HTMLElement>(':scope .nb-container-zone').forEach(zone => {
+    zone.querySelectorAll<HTMLElement>(':scope > .nb-block-wrapper').forEach(child => {
+      collectTocItems(child, out);
+    });
+  });
+}
+
+function generateTocBody(): string {
+  const items: { label: string; level: string }[] = [];
+  paper.querySelectorAll<HTMLElement>(':scope > .nb-block-wrapper').forEach(w => {
+    collectTocItems(w, items);
+  });
+  if (items.length === 0) return '';
+  return items
+    .map(({ label, level }) => `<div class="nb-toc-item nb-toc-item--${level}">${label}</div>`)
+    .join('');
+}
+
+// ─────────────────────────────────────────────────────────────────
+
 function openInsertModal(tpl: Template, targetContainer: HTMLElement, position: 'start' | 'end' = 'end'): void {
+  // TOC: auto-generate from document structure without showing a modal
+  if (tpl.id === 'toc') {
+    const body = generateTocBody();
+    const instance: TemplateInstance = {
+      id: `inst_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      templateId: 'toc',
+      data: { body },
+    };
+    insertBlock(tpl.render({ body }), instance, targetContainer, position);
+    return;
+  }
+
   const inputFields = tpl.fields.filter(f => f.type !== 'container');
   if (inputFields.length === 0) {
     const instance: TemplateInstance = {
@@ -151,6 +206,7 @@ function updateBlock(instanceId: string, html: string, newInstance: TemplateInst
   registerEntry(instanceId, updated.templateId, updated.data);
   refreshIcons();
   triggerAutoSave();
+  if (activeModes.includes('preview')) refreshPreviewPane();
 }
 
 // ── Container zones ───────────────────────────────────────────────
@@ -164,6 +220,11 @@ function initContainerZone(zone: HTMLElement): void {
 // ── Mode management ───────────────────────────────────────────────
 
 type AppMode = 'edit' | 'preview' | 'code';
+
+// Ordered list of active modes (1 or 2). First = left pane, second = right pane.
+let activeModes: AppMode[] = ['edit'];
+
+// Derived shorthand used by drag checks
 let currentMode: AppMode = 'edit';
 
 // Build multiple A4 preview-page elements from the current paper content.
@@ -264,56 +325,80 @@ function buildPreviewPages(): HTMLElement {
   return pagesEl;
 }
 
-function setMode(mode: AppMode): void {
-  currentMode = mode;
-  document.body.dataset.nbMode = mode;
+function refreshPreviewPane(): void {
+  const pane = document.getElementById('nb-preview-pane');
+  if (!pane) return;
+  let iframe = pane.querySelector<HTMLIFrameElement>('iframe');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.className = 'nb-preview-iframe';
+    pane.appendChild(iframe);
+  }
+  const meta = loadFekMeta();
+  iframe.srcdoc = buildDocHtml(paper, hasFekMeta(meta) ? meta : null);
+  iframe.onload = () => {
+    const body = (iframe as HTMLIFrameElement).contentDocument?.body;
+    if (body) (iframe as HTMLIFrameElement).style.height = body.scrollHeight + 40 + 'px';
+  };
+}
 
+function applyModes(modes: AppMode[]): void {
+  activeModes = modes;
+  const isSplit = modes.length === 2;
+  const hasEdit    = modes.includes('edit');
+  const hasPreview = modes.includes('preview');
+  const hasCode    = modes.includes('code');
+
+  // Derived single-mode value used by drag / touch checks
+  currentMode = hasEdit ? 'edit' : hasPreview ? 'preview' : 'code';
+  document.body.dataset.nbMode = currentMode;
+  document.body.classList.toggle('nb-split', isSplit);
+
+  // Update tab visual states
   document.querySelectorAll<HTMLButtonElement>('.nb-mode-tab').forEach(tab => {
-    tab.classList.toggle('nb-mode-tab--active', tab.dataset.mode === mode);
+    const m = tab.dataset.mode as AppMode;
+    const isActive   = modes.includes(m);
+    const isDisabled = isSplit && !isActive;
+    tab.classList.toggle('nb-mode-tab--active',   isActive);
+    tab.classList.toggle('nb-mode-tab--disabled', isDisabled);
+    tab.disabled = isDisabled;
   });
 
-  const canvas = document.getElementById('nb-canvas');
-  const codePanel = document.getElementById('nb-code-panel');
+  const canvas      = document.getElementById('nb-canvas');
+  const previewPane = document.getElementById('nb-preview-pane');
+  const codePanel   = document.getElementById('nb-code-panel');
 
-  // Hide any leftover preview iframe from previous visit
-  const existingIframe = document.getElementById('nb-preview-iframe') as HTMLIFrameElement | null;
-  if (existingIframe) existingIframe.style.display = 'none';
-  paper.style.display = '';
+  // canvas and codePanel have no display:none in CSS → reset to '' to get flex-item behaviour
+  if (canvas)      canvas.style.display      = hasEdit ? '' : 'none';
+  // previewPane CSS default is display:none → must set explicitly when showing
+  if (previewPane) previewPane.style.display  = hasPreview ? 'flex' : 'none';
+  if (codePanel)   codePanel.style.display    = hasCode    ? ''     : 'none';
 
-  if (mode === 'code') {
-    if (canvas) canvas.style.display = 'none';
-    if (codePanel) codePanel.style.display = 'flex';
-    const latex = generateLatex(paper, instances);
+  if (hasPreview) refreshPreviewPane();
+
+  if (hasCode) {
     const codeEl = document.getElementById('nb-code-content');
-    if (codeEl) codeEl.textContent = latex;
-  } else {
-    if (canvas) canvas.style.display = '';
-    if (codePanel) codePanel.style.display = 'none';
-
-    if (mode === 'preview') {
-      paper.style.display = 'none';
-      let iframe = document.getElementById('nb-preview-iframe') as HTMLIFrameElement | null;
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'nb-preview-iframe';
-        iframe.className = 'nb-preview-iframe';
-        canvas?.insertBefore(iframe, paper);
-      }
-      iframe.style.display = 'block';
-      const meta = loadFekMeta();
-      iframe.srcdoc = buildDocHtml(paper, hasFekMeta(meta) ? meta : null);
-      iframe.onload = () => {
-        const body = (iframe as HTMLIFrameElement).contentDocument?.body;
-        if (body) (iframe as HTMLIFrameElement).style.height = body.scrollHeight + 40 + 'px';
-      };
-    }
+    if (codeEl) codeEl.textContent = generateLatex(paper, instances);
   }
 }
 
 document.querySelectorAll<HTMLButtonElement>('.nb-mode-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const mode = tab.dataset.mode as AppMode;
-    if (mode) setMode(mode);
+    if (!mode) return;
+
+    if (activeModes.includes(mode)) {
+      // Deselect only when 2 are active (always keep at least 1)
+      if (activeModes.length > 1) {
+        applyModes(activeModes.filter(m => m !== mode));
+      }
+    } else {
+      // Add to active (max 2); if already 2, replace the second
+      const next = activeModes.length < 2
+        ? [...activeModes, mode]
+        : [activeModes[0], mode];
+      applyModes(next as AppMode[]);
+    }
   });
 });
 
@@ -433,6 +518,7 @@ function setupDropZone(container: HTMLElement): void {
     hideDropLine();
     renumberDocument(paper, instances);
     triggerAutoSave();
+    if (activeModes.includes('preview')) refreshPreviewPane();
   });
 }
 
@@ -463,6 +549,47 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
     document.addEventListener('mouseup', off, { once: true });
     wrapper.addEventListener('dragend', off, { once: true });
   });
+
+  // Touch drag: move block up/down by touch-scrolling over siblings
+  let touchDragActive = false;
+  let touchLastY = 0;
+  dragHandle.addEventListener('touchstart', (e) => {
+    if (currentMode !== 'edit') return;
+    e.preventDefault();
+    touchDragActive = true;
+    touchLastY = e.touches[0].clientY;
+    wrapper.classList.add('nb-dragging');
+  }, { passive: false });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!touchDragActive) return;
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    const dy = y - touchLastY;
+    touchLastY = y;
+
+    const target = document.elementFromPoint(e.touches[0].clientX, y);
+    if (!target) return;
+    const sibling = target.closest<HTMLElement>('.nb-block-wrapper');
+    if (!sibling || sibling === wrapper || sibling.parentElement !== wrapper.parentElement) return;
+
+    const rect = sibling.getBoundingClientRect();
+    const insertBefore = y < rect.top + rect.height / 2;
+    pushSnapshot(captureSnapshot());
+    if (insertBefore) {
+      wrapper.parentElement!.insertBefore(wrapper, sibling);
+    } else {
+      sibling.after(wrapper);
+    }
+    renumberDocument(paper, instances);
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    if (!touchDragActive) return;
+    touchDragActive = false;
+    wrapper.classList.remove('nb-dragging');
+    triggerAutoSave();
+  }, { passive: true });
 
   actions.querySelector('.nb-action-btn--up')!.addEventListener('click', () => {
     const prev = wrapper.previousElementSibling;
@@ -498,6 +625,14 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
     if (!inst) return;
     const tpl = getTemplate(inst.templateId);
     if (!tpl) return;
+    // TOC: re-generate instead of opening modal
+    if (inst.templateId === 'toc') {
+      const body = generateTocBody();
+      const updated = { ...inst, data: { body } };
+      updateBlock(instanceId, tpl.render({ body }), updated);
+      showSaveStatus('Πίνακας περιεχομένων ανανεώθηκε');
+      return;
+    }
     openTemplateModal(tpl, inst, (html, updated) => updateBlock(instanceId, html, updated));
   });
 
@@ -534,26 +669,90 @@ document.getElementById('nb-add-page-bottom')?.addEventListener('click', () => i
 const AUTOSAVE_KEY = 'nb_autosave_v1';
 let _autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
+function stripBase64FromBlocks(blocks: SavedBlock[]): { blocks: SavedBlock[]; stripped: boolean } {
+  let stripped = false;
+  const mapped = blocks.map(block => {
+    const data = { ...block.data };
+    if (block.templateId === 'image-block' && data.src?.startsWith('data:')) {
+      data.src = '';
+      stripped = true;
+    }
+    const { blocks: childBlocks, stripped: childStripped } = stripBase64FromBlocks(
+      Object.values(block.zones).flat(),
+    );
+    // Rebuild zones with stripped children
+    const zones: typeof block.zones = {};
+    let zIdx = 0;
+    for (const key of Object.keys(block.zones)) {
+      const len = block.zones[key].length;
+      zones[key] = childBlocks.slice(zIdx, zIdx + len);
+      zIdx += len;
+    }
+    if (childStripped) stripped = true;
+    return { ...block, data, zones };
+  });
+  return { blocks: mapped, stripped };
+}
+
 function triggerAutoSave(): void {
   if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(() => {
     const data = serializeDocument(paper, instances);
+    const json = JSON.stringify(data);
+    let toStore = json;
+    let hadStrip = false;
+
+    // If payload exceeds ~4 MB, remove base64 image data to stay within localStorage limits
+    if (json.length > 4 * 1024 * 1024) {
+      const { blocks, stripped } = stripBase64FromBlocks(data.blocks);
+      if (stripped) {
+        toStore = JSON.stringify({ ...data, blocks });
+        hadStrip = true;
+      }
+    }
+
     try {
-      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
-      showSaveStatus('Αποθηκεύτηκε αυτόματα');
+      localStorage.setItem(AUTOSAVE_KEY, toStore);
+      showSaveStatus(
+        hadStrip
+          ? '⚠ Αποθηκεύτηκε χωρίς εικόνες — χρησιμοποιήστε JSON για πλήρη αποθήκευση'
+          : 'Αποθηκεύτηκε αυτόματα',
+      );
     } catch {
       showSaveStatus('⚠ Αποτυχία αποθήκευσης — χρησιμοποιήστε Αποθήκευση ως JSON');
     }
   }, 1800);
 }
 
+let _toastEl: HTMLElement | null = null;
+
+function getToastContainer(): HTMLElement {
+  if (!_toastEl) {
+    _toastEl = document.createElement('div');
+    _toastEl.className = 'nb-toast-container';
+    document.body.appendChild(_toastEl);
+  }
+  return _toastEl;
+}
+
 function showSaveStatus(msg: string): void {
-  const el = document.getElementById('nb-save-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.removeAttribute('hidden');
-  clearTimeout((el as any)._timer);
-  (el as any)._timer = setTimeout(() => el.setAttribute('hidden', ''), 4000);
+  const container = getToastContainer();
+  const toast = document.createElement('div');
+
+  const variant = msg.startsWith('⚠') ? 'warning'
+    : msg.startsWith('↩') || msg.startsWith('↪') ? 'action'
+    : 'info';
+
+  toast.className = `nb-toast nb-toast--${variant}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('nb-toast--show')));
+
+  setTimeout(() => {
+    toast.classList.remove('nb-toast--show');
+    toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+  }, 4000);
 }
 
 // ── Document serialization / restore ─────────────────────────────
@@ -1000,6 +1199,113 @@ function initSlotsModal(): void {
   });
 }
 
+// ── Settings modal ────────────────────────────────────────────────
+
+const SETTINGS_KEY = 'nb_settings_v1';
+
+interface AppSettings {
+  theme: 'light' | 'dark';
+  fontFamily: 'serif' | 'sans';
+  paperWidth: 'narrow' | 'normal';
+}
+
+function loadSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) return { theme: 'light', fontFamily: 'serif', paperWidth: 'normal', ...JSON.parse(raw) };
+  } catch {}
+  return { theme: 'light', fontFamily: 'serif', paperWidth: 'normal' };
+}
+
+function saveSettings(s: AppSettings): void {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
+
+function applySettings(s: AppSettings): void {
+  document.documentElement.setAttribute('data-theme', s.theme === 'dark' ? 'dark' : 'light');
+  paper.style.fontFamily = s.fontFamily === 'sans'
+    ? "system-ui, -apple-system, sans-serif"
+    : "";
+  if (s.paperWidth === 'narrow') {
+    paper.style.maxWidth = '680px';
+  } else {
+    paper.style.maxWidth = '';
+  }
+}
+
+function initSettingsModal(): void {
+  const btn = document.getElementById('nb-settings-btn');
+  if (!btn) return;
+  let modal: HTMLDialogElement | null = null;
+
+  // Apply saved settings on load
+  applySettings(loadSettings());
+
+  btn.addEventListener('click', () => {
+    if (!modal) {
+      modal = document.createElement('dialog');
+      modal.className = 'modal';
+      document.body.appendChild(modal);
+    }
+
+    const s = loadSettings();
+    modal.innerHTML = `
+      <div class="modal-box w-11/12 max-w-sm font-sans">
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3">✕</button>
+        </form>
+        <h3 class="font-bold text-base mb-5">Ρυθμίσεις</h3>
+
+        <div class="space-y-4">
+          <div class="form-control">
+            <label class="label pb-1"><span class="label-text font-medium text-sm">Θέμα εμφάνισης</span></label>
+            <select name="theme" class="select select-bordered select-sm w-full">
+              <option value="light" ${s.theme === 'light' ? 'selected' : ''}>Φωτεινό (Light)</option>
+              <option value="dark"  ${s.theme === 'dark'  ? 'selected' : ''}>Σκοτεινό (Dark)</option>
+            </select>
+          </div>
+
+          <div class="form-control">
+            <label class="label pb-1"><span class="label-text font-medium text-sm">Γραμματοσειρά εγγράφου</span></label>
+            <select name="fontFamily" class="select select-bordered select-sm w-full">
+              <option value="serif" ${s.fontFamily === 'serif' ? 'selected' : ''}>Serif (Noto Serif — προεπιλογή)</option>
+              <option value="sans"  ${s.fontFamily === 'sans'  ? 'selected' : ''}>Sans-serif (Συστήματος)</option>
+            </select>
+          </div>
+
+          <div class="form-control">
+            <label class="label pb-1"><span class="label-text font-medium text-sm">Πλάτος σελίδας</span></label>
+            <select name="paperWidth" class="select select-bordered select-sm w-full">
+              <option value="normal" ${s.paperWidth === 'normal' ? 'selected' : ''}>Κανονικό (A4)</option>
+              <option value="narrow" ${s.paperWidth === 'narrow' ? 'selected' : ''}>Στενό</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-action mt-6">
+          <form method="dialog"><button class="btn btn-ghost btn-sm">Άκυρο</button></form>
+          <button type="button" id="nb-settings-save" class="btn btn-primary btn-sm">Εφαρμογή</button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    `;
+
+    modal.querySelector('#nb-settings-save')?.addEventListener('click', () => {
+      const newSettings: AppSettings = {
+        theme: (modal!.querySelector<HTMLSelectElement>('[name="theme"]')?.value ?? 'light') as AppSettings['theme'],
+        fontFamily: (modal!.querySelector<HTMLSelectElement>('[name="fontFamily"]')?.value ?? 'serif') as AppSettings['fontFamily'],
+        paperWidth: (modal!.querySelector<HTMLSelectElement>('[name="paperWidth"]')?.value ?? 'normal') as AppSettings['paperWidth'],
+      };
+      saveSettings(newSettings);
+      applySettings(newSettings);
+      modal!.close();
+      showSaveStatus('Ρυθμίσεις αποθηκεύτηκαν');
+    });
+
+    modal.showModal();
+  });
+}
+
 // ── Keyboard shortcuts ────────────────────────────────────────────
 
 document.addEventListener('keydown', (e) => {
@@ -1018,3 +1324,5 @@ initFileMenu();
 initRestoreBanner();
 initFekMetaModal();
 initSlotsModal();
+initSettingsModal();
+applyModes(['edit']);

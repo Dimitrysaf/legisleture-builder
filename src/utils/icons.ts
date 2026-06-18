@@ -5,8 +5,9 @@ import {
   FileText, Bookmark, List, ListOrdered, Link2, Calendar,
   Building2, Gavel, Shield, ClipboardList, FilePlus, Tag,
   Quote, Type, Save, Info, Image,
-  ArrowUp, ArrowDown, CornerDownRight, GripVertical, Code,
+  ArrowUp, ArrowDown, CornerDownRight, CornerDownLeft, GripVertical, Code,
   Hash, Replace, BookMarked, ChevronsRight, SeparatorHorizontal,
+  Table, PenLine, CalendarCheck, Settings,
 } from 'lucide';
 
 const ICONS = {
@@ -15,8 +16,9 @@ const ICONS = {
   FileText, Bookmark, List, ListOrdered, Link2, Calendar,
   Building2, Gavel, Shield, ClipboardList, FilePlus, Tag,
   Quote, Type, Save, Info, Image,
-  ArrowUp, ArrowDown, CornerDownRight, GripVertical, Code,
+  ArrowUp, ArrowDown, CornerDownRight, CornerDownLeft, GripVertical, Code,
   Hash, Replace, BookMarked, ChevronsRight, SeparatorHorizontal,
+  Table, PenLine, CalendarCheck, Settings,
 };
 
 export function refreshIcons(): void {

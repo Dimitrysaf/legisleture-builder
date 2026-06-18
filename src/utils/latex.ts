@@ -79,8 +79,19 @@ function wrapperToLatex(wrapper: HTMLElement, instances: Map<string, TemplateIns
       return `\\noindent\\textbf{${esc(`${d.number}.`)}} ${richToLatex(d.content ?? '')}${nestedLatex}`;
     case 'subparagraph':
       return `\\hspace{1em}\\textbf{${esc(`${d.number}.`)}} ${richToLatex(d.content ?? '')}${nestedLatex}`;
-    case 'preamble':
-      return `\\begin{quote}\n\\textit{${richToLatex(d.content ?? '')}}\n\\end{quote}`;
+    case 'preamble': {
+      const authority = [d.authority?.trim(), d.authority_suffix?.trim()].filter(Boolean).join(' ');
+      const bases = richToLatex(d.bases ?? '');
+      const proposal = d.proposal?.trim();
+      const conclusion = d.conclusion?.trim() || 'αποφασίζουμε';
+      const parts: string[] = [];
+      if (authority) parts.push(`\\begin{center}\n\\textbf{${esc(authority)}}\n\\end{center}`);
+      parts.push('Έχοντας υπόψη:');
+      if (bases) parts.push(bases);
+      if (proposal) parts.push(esc(proposal));
+      parts.push(`${esc(conclusion)}:`);
+      return parts.join('\n\n');
+    }
     case 'lawref': {
       const article = d.article?.trim() ? ` ${d.article.trim()}` : '';
       const fek = d.fek?.trim() ? ` (ΦΕΚ ${d.fek.trim()})` : '';
@@ -106,10 +117,78 @@ function wrapperToLatex(wrapper: HTMLElement, instances: Map<string, TemplateIns
       const titlePart = d.title?.trim() ? ` -- ${d.title.trim()}` : '';
       return `\\subsection*{${esc(`Μεταβατική Διάταξη ${d.number}${titlePart}`)}}${nestedLatex}`;
     }
+    case 'plaintext':
+      return richToLatex(d.content ?? '');
+    case 'image-block': {
+      const figNum  = d.figure_num?.trim();
+      const caption = d.caption?.trim();
+      const captionLatex = (figNum || caption)
+        ? `\n  \\caption{${esc([figNum, caption].filter(Boolean).join('. '))}}`
+        : '';
+      const widthFrac = (parseInt(d.width || '50', 10) / 100).toFixed(2);
+      const imgLine = (d.src ?? '').startsWith('data:')
+        ? `  % [εικόνα — εισάγετε αρχείο χειροκίνητα]`
+        : `  \\includegraphics[width=${widthFrac}\\textwidth]{${esc(d.src ?? '')}}`;
+      return `\\begin{figure}[h]\n  \\centering\n${imgLine}${captionLatex}\n\\end{figure}`;
+    }
     case 'pagebreak':
       return `\\clearpage`;
     case 'note':
       return `% [ΣΗΜΕΙΩΣΗ]: ${(d.content ?? '').replace(/\n/g, ' ')}`;
+    case 'table': {
+      const headers = (d.headers ?? '').split('|').map(h => h.trim()).filter(Boolean);
+      const rows = (d.rows ?? '').split('\n').filter(l => l.trim());
+      const colSpec = headers.map(() => 'l').join('|');
+      const headRow = headers.map(h => `\\textbf{${esc(h)}}`).join(' & ');
+      const bodyRows = rows
+        .map(line => line.split('|').map(c => esc(c.trim())).join(' & '))
+        .map(r => `${r} \\\\`);
+      const caption = d.caption?.trim() ? `\n\\caption{${esc(d.caption.trim())}}` : '';
+      return [
+        `\\begin{table}[h]`,
+        `\\centering`,
+        caption,
+        `\\begin{tabular}{|${colSpec}|}`,
+        `\\hline`,
+        `${headRow} \\\\`,
+        `\\hline`,
+        ...bodyRows,
+        `\\hline`,
+        `\\end{tabular}`,
+        `\\end{table}`,
+      ].filter(Boolean).join('\n');
+    }
+    case 'closing': {
+      const placeDate = d.place_date?.trim() ? esc(d.place_date.trim()) : '';
+      const groups = (d.signatories ?? '')
+        .split(/\n\s*\n/)
+        .map(g => g.trim())
+        .filter(Boolean);
+      const sigs = groups.map(g => {
+        const lines = g.split('\n').map(l => l.trim()).filter(Boolean);
+        return `\\textbf{${esc(lines[0] ?? '')}}${lines[1] ? `\\\\\n${esc(lines[1])}` : ''}`;
+      }).join('\n\\hspace{3cm}\n');
+      return [
+        placeDate ? `\\noindent${placeDate}` : '',
+        '',
+        `\\vspace{1em}`,
+        sigs,
+      ].filter(Boolean).join('\n');
+    }
+    case 'final-article': {
+      const num = esc(d.number ?? '');
+      const body = d.custom_text?.trim()
+        ? richToLatex(d.custom_text.trim())
+        : 'Η ισχύς του παρόντος αρχίζει από τη δημοσίευσή του στην Εφημερίδα της Κυβερνήσεως.';
+      return `\\subsection*{${esc(`Άρθρο ${num} — Έναρξη Ισχύος`)}}\n${body}`;
+    }
+    case 'footnote': {
+      const marker = esc(d.marker ?? '');
+      const content = richToLatex(d.content ?? '');
+      return `\\footnotetext[${marker}]{${content}}`;
+    }
+    case 'toc':
+      return `\\tableofcontents`;
     default:
       return `% [${inst.templateId}]`;
   }

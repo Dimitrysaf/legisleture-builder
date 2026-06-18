@@ -102,10 +102,10 @@ body {
 .nb-block { padding: 4px 0; }
 
 /* ── Structural headings ── */
-.nb-struct-heading { display: flex; flex-direction: column; line-height: 1.25; margin-bottom: 8px; }
+.nb-struct-heading { display: inline-flex; flex-direction: column; line-height: 1.25; margin-bottom: 8px; }
 .nb-struct-role    { font-weight: 700; display: block; }
 .nb-struct-rule    { display: block; height: 1px; background: currentColor; margin: 3px 0 2px; opacity: .55; }
-.nb-struct-title   { display: block; font-weight: 700; }
+.nb-struct-title   { display: block; font-weight: 700; font-size: 11.5pt; margin-top: 0; }
 .nb-struct-heading--part        { font-size: 17pt; }
 .nb-struct-heading--chapter     { font-size: 15pt; }
 .nb-struct-heading--section     { font-size: 13pt; }
@@ -185,6 +185,45 @@ body {
 /* ── Page break ── */
 .nb-block--pagebreak { break-after: page; page-break-after: always; height: 0; overflow: hidden; }
 .nb-pagebreak        { display: none; }
+
+/* ── Table ── */
+.nb-block--table { margin: 16px 0; overflow-x: auto; }
+.nb-table { width: 100%; border-collapse: collapse; font-size: 10.5pt; line-height: 1.4; }
+.nb-table th, .nb-table td { border: 1px solid #374151; padding: 5px 10px; text-align: left; vertical-align: top; }
+.nb-table thead th { background: #f3f4f6; font-weight: 700; }
+.nb-table tbody tr:nth-child(even) td { background: #f9fafb; }
+.nb-table-caption { font-size: 9pt; color: #6b7280; font-style: italic; margin-bottom: 4pt; caption-side: top; text-align: left; }
+
+/* ── Closing / Signatures ── */
+.nb-block--closing { margin: 32px 0 20px; }
+.nb-closing-date { font-weight: 700; margin-bottom: 24px; }
+.nb-signatories { display: flex; flex-wrap: wrap; gap: 32px 48px; }
+.nb-signatory { min-width: 160px; }
+.nb-signatory-role { font-weight: 700; text-transform: uppercase; font-size: 10pt; margin-bottom: 40px; }
+.nb-signatory-name { font-size: 10.5pt; }
+
+/* ── Final Article ── */
+.nb-block--final-article { margin: 14px 0; }
+
+/* ── Footnote ── */
+.nb-block--footnote { margin: 8px 0 0; }
+.nb-footnote-rule { border: none; border-top: 1px solid #9ca3af; width: 33%; margin: 4px 0 6px; }
+.nb-footnote { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; font-size: 9pt; line-height: 1.5; }
+.nb-footnote-marker { font-weight: 700; white-space: nowrap; padding-top: 1px; }
+.nb-footnote-body p { margin: 2px 0; }
+
+/* ── Table of Contents ── */
+.nb-block--toc { margin: 20px 0; }
+.nb-toc-title { font-weight: 700; font-size: 12pt; text-align: center; letter-spacing: 0.06em; margin-bottom: 12px; text-transform: uppercase; }
+.nb-toc-body { line-height: 1.8; }
+.nb-toc-empty { font-style: italic; color: #6b7280; font-size: 10pt; }
+.nb-toc-item { padding: 1px 0; }
+.nb-toc-item--part { font-weight: 700; font-size: 11pt; margin-top: 6px; }
+.nb-toc-item--chapter { font-weight: 700; font-size: 10.5pt; padding-left: 12px; }
+.nb-toc-item--section { padding-left: 24px; }
+.nb-toc-item--article, .nb-toc-item--final-article { padding-left: 36px; font-size: 10pt; }
+.nb-toc-item--annex { font-weight: 700; margin-top: 6px; }
+.nb-toc-item--transitional { padding-left: 36px; font-size: 10pt; font-style: italic; }
 `.trim();
 
 function cloneForExport(paper: HTMLElement): HTMLElement {

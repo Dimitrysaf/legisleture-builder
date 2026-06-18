@@ -121,9 +121,9 @@ function parseChunk(chunk: string): SavedBlock | null {
       .replace(/^\\begin\{quote\}\n?/, '')
       .replace(/\n?\\end\{quote\}$/, '')
       .trim();
-    // \textit{...} → preamble
+    // \textit{...} → preamble (old export format; store in bases as best-effort)
     const tiM = inner.match(/^\\textit\{([\s\S]*)\}$/);
-    return mkBlock('preamble', { content: unesc(tiM ? tiM[1] : inner) });
+    return mkBlock('preamble', { bases: unesc(tiM ? tiM[1] : inner) });
   }
 
   // Structural headings: \part*, \chapter*, \section*, \subsection*
