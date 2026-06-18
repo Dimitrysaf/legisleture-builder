@@ -10,6 +10,8 @@ import {
   serializeDocument, isSaveFile,
   type SaveFile, type SavedBlock,
 } from '../utils/fileOps';
+import { loadFekMeta } from '../utils/fekMeta';
+import { newProject, type Project } from '../types/project';
 import { pushSnapshot, undoPop, redoPop, pushRedo, pushUndoOnly, clearHistory } from '../utils/history';
 import { state } from './state';
 import { showSaveStatus } from './toast';
@@ -308,9 +310,25 @@ export function deserializeBlocks(blocks: SavedBlock[], container: HTMLElement):
   }
 }
 
+export function loadFromProject(project: Project): void {
+  clearDocument();
+  clearHistory();
+  state.currentProject = project;
+  deserializeBlocks(project.blocks, state.paper);
+  renumberDocument(state.paper, state.instances);
+  refreshIcons();
+}
+
 export function loadFromSaveFile(saveFile: SaveFile): void {
   clearDocument();
   clearHistory();
+  const project = newProject();
+  if (saveFile.savedAt) {
+    project.createdAt = saveFile.savedAt;
+    project.modifiedAt = saveFile.savedAt;
+  }
+  project.fekMeta = loadFekMeta();
+  state.currentProject = project;
   deserializeBlocks(saveFile.blocks, state.paper);
   renumberDocument(state.paper, state.instances);
   refreshIcons();

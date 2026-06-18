@@ -159,16 +159,16 @@ function walkStructure(
 
     switch (inst.templateId) {
       case 'part': {
+        const z = zoneEl(el, 'sections');
+        if (z) walkStructure(z, instances, counters);
+        break;
+      }
+      case 'section': {
         const z = zoneEl(el, 'chapters');
         if (z) walkStructure(z, instances, counters);
         break;
       }
       case 'chapter': {
-        const z = zoneEl(el, 'articles');
-        if (z) walkStructure(z, instances, counters);
-        break;
-      }
-      case 'section': {
         const z = zoneEl(el, 'articles');
         if (z) walkStructure(z, instances, counters);
         break;
@@ -224,7 +224,7 @@ function refreshCrossRefs(paper: HTMLElement): void {
  *   - paragraphs (arabic, reset per article/transitional)
  *   - subparagraphs (Greek lowercase, reset per paragraph, depth-aware)
  *
- * Parts, chapters, sections, and annexes keep user-defined numbers.
+ * Parts, sections, chapters, and annexes keep user-defined numbers.
  * After renumbering, all live cross-reference anchors are refreshed.
  */
 export function renumberDocument(

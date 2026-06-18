@@ -1,5 +1,6 @@
 import type { TemplateInstance } from '../templates/types';
 import type { FekMeta } from './fekMeta';
+import type { Project, ProjectFile } from '../types/project';
 import { buildFekHeaderHtml, hasFekMeta } from './fekMeta';
 
 // ── Data model ─────────────────────────────────────────────────────
@@ -29,6 +30,23 @@ export function serializeDocument(
     app: 'legisleture-builder',
     savedAt: new Date().toISOString(),
     blocks: serializeContainer(paper, instances),
+  };
+}
+
+export function serializeProject(
+  paper: HTMLElement,
+  instances: Map<string, TemplateInstance>,
+  project: Project,
+): ProjectFile {
+  const blocks = serializeContainer(paper, instances);
+  return {
+    version: 2,
+    app: 'legisleture-builder',
+    project: {
+      ...project,
+      blocks,
+      modifiedAt: new Date().toISOString(),
+    },
   };
 }
 
@@ -341,5 +359,17 @@ export function isSaveFile(obj: unknown): obj is SaveFile {
     (obj as SaveFile).version === 1 &&
     (obj as SaveFile).app === 'legisleture-builder' &&
     Array.isArray((obj as SaveFile).blocks)
+  );
+}
+
+export function isProjectFile(obj: unknown): obj is ProjectFile {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    (obj as ProjectFile).version === 2 &&
+    (obj as ProjectFile).app === 'legisleture-builder' &&
+    typeof (obj as ProjectFile).project === 'object' &&
+    (obj as ProjectFile).project !== null &&
+    Array.isArray((obj as ProjectFile).project.blocks)
   );
 }

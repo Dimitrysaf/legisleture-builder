@@ -1,7 +1,8 @@
 import { state } from '../state';
 import { showSaveStatus } from '../toast';
-import { loadFromSaveFile } from '../blocks';
-import { serializeDocument, isSaveFile } from '../../utils/fileOps';
+import { loadFromProject } from '../blocks';
+import { serializeProject } from '../../utils/fileOps';
+import { newProject } from '../../types/project';
 import { listSlots, saveSlot, loadSlot, deleteSlot, slotTimestamp } from '../../utils/saveSlots';
 
 export function initSlotsModal(): void {
@@ -31,9 +32,9 @@ export function initSlotsModal(): void {
 
     list.querySelectorAll<HTMLButtonElement>('[data-slot-load]').forEach(b => {
       b.addEventListener('click', () => {
-        const sf = loadSlot(b.dataset.slotLoad!);
-        if (!sf || !isSaveFile(sf)) return;
-        loadFromSaveFile(sf);
+        const pf = loadSlot(b.dataset.slotLoad!);
+        if (!pf) return;
+        loadFromProject(pf.project);
         modal.close();
         showSaveStatus(`Φορτώθηκε: ${b.dataset.slotLoad}`);
       });
@@ -76,7 +77,9 @@ export function initSlotsModal(): void {
       const inp = modal!.querySelector<HTMLInputElement>('#nb-slot-name-input');
       const name = inp?.value.trim();
       if (!name) { inp?.focus(); return; }
-      saveSlot(name, serializeDocument(state.paper, state.instances));
+      const project = state.currentProject ?? newProject();
+      const pf = serializeProject(state.paper, state.instances, project);
+      saveSlot(name, pf);
       if (inp) inp.value = '';
       renderSlotList(modal!);
       showSaveStatus(`Αποθηκεύτηκε: ${name}`);

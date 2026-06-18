@@ -1,35 +1,45 @@
 import { showSaveStatus } from '../toast';
-import { loadFromSaveFile } from '../blocks';
-import { isSaveFile, type SaveFile } from '../../utils/fileOps';
+import { loadFromSaveFile, loadFromProject } from '../blocks';
+import { isSaveFile, isProjectFile } from '../../utils/fileOps';
 import { AUTOSAVE_KEY } from '../autosave';
 
 export function initRestoreBanner(): void {
   const banner = document.getElementById('nb-restore-banner');
   if (!banner) return;
 
-  let saveFile: SaveFile | null = null;
+  let onRestore: (() => void) | null = null;
+  let savedAt = '';
+
   try {
     const raw = localStorage.getItem(AUTOSAVE_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw);
-    if (!isSaveFile(parsed) || parsed.blocks.length === 0) return;
-    saveFile = parsed;
+
+    if (isProjectFile(parsed) && parsed.project.blocks.length > 0) {
+      savedAt = parsed.project.modifiedAt;
+      onRestore = () => loadFromProject(parsed.project);
+    } else if (isSaveFile(parsed) && parsed.blocks.length > 0) {
+      savedAt = parsed.savedAt;
+      onRestore = () => loadFromSaveFile(parsed);
+    } else {
+      return;
+    }
   } catch { return; }
 
   const tsEl = banner.querySelector<HTMLElement>('.nb-restore-time');
-  if (tsEl && saveFile!.savedAt) {
+  if (tsEl && savedAt) {
     try {
-      tsEl.textContent = new Date(saveFile!.savedAt).toLocaleString('el-GR', {
+      tsEl.textContent = new Date(savedAt).toLocaleString('el-GR', {
         day: '2-digit', month: '2-digit', year: 'numeric',
         hour: '2-digit', minute: '2-digit',
       });
-    } catch { tsEl.textContent = saveFile!.savedAt; }
+    } catch { tsEl.textContent = savedAt; }
   }
 
   banner.removeAttribute('hidden');
 
   document.getElementById('nb-restore-yes')?.addEventListener('click', () => {
-    loadFromSaveFile(saveFile!);
+    onRestore?.();
     banner.setAttribute('hidden', '');
     showSaveStatus('Συνεδρία επαναφέρθηκε');
   });

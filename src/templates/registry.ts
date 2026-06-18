@@ -26,8 +26,8 @@ const STORAGE_KEY = 'nb_custom_templates';
 
 const registry = new Map<string, Template>([
   ['part', partTemplate],
-  ['chapter', chapterTemplate],
   ['section', sectionTemplate],
+  ['chapter', chapterTemplate],
   ['article', articleTemplate],
   ['paragraph', paragraphTemplate],
   ['subparagraph', subparagraphTemplate],

@@ -4,7 +4,7 @@ export const chapterTemplate: Template = {
   id: 'chapter',
   name: 'Κεφάλαιο',
   icon: 'layers',
-  description: 'Ενότητα νόμου – περιέχει άρθρα',
+  description: 'Υποδιαίρεση τμήματος – περιέχει άρθρα',
   category: 'structure',
   fields: [
     { id: 'number', label: 'Αριθμός (π.χ. Α΄, Β΄, Ι, ΙΙ)', type: 'text', required: true, placeholder: 'Α΄' },

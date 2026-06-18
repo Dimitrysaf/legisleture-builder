@@ -1,4 +1,5 @@
 import type { TemplateInstance } from '../templates/types';
+import type { Project } from '../types/project';
 
 export type AppMode = 'edit' | 'preview' | 'code';
 
@@ -13,4 +14,5 @@ export const state = {
   toastEl: null as HTMLElement | null,
   dragSrc: null as HTMLElement | null,
   pendingDrop: null as { before: HTMLElement | null; parent: HTMLElement } | null,
+  currentProject: null as Project | null,
 };

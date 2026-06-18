@@ -1,6 +1,8 @@
+import { state } from '../state';
 import { showSaveStatus } from '../toast';
+import { triggerAutoSave } from '../autosave';
 import {
-  loadFekMeta, saveFekMeta, hasFekMeta, buildFekHeaderHtml,
+  hasFekMeta, buildFekHeaderHtml, EMPTY_META,
   type FekMeta,
 } from '../../utils/fekMeta';
 
@@ -54,7 +56,7 @@ export function initFekMetaModal(): void {
       document.body.appendChild(modal);
     }
 
-    const meta = loadFekMeta();
+    const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
     modal.innerHTML = `
       <div class="modal-box w-11/12 max-w-2xl font-sans">
         <form method="dialog">
@@ -118,14 +120,17 @@ export function initFekMetaModal(): void {
     updateFekPreview(modal);
 
     modal.querySelector('#nb-fek-meta-save')?.addEventListener('click', () => {
-      saveFekMeta(readModalMeta(modal!));
+      const newMeta = readModalMeta(modal!);
+      if (state.currentProject) state.currentProject.fekMeta = newMeta;
       modal!.close();
+      triggerAutoSave();
       showSaveStatus('Στοιχεία ΦΕΚ αποθηκεύτηκαν');
     });
 
     modal.querySelector('#nb-fek-meta-clear')?.addEventListener('click', () => {
-      saveFekMeta({ teuchos: '', arithmos: '', hmeromhnia: '', titlos: '', twoColumn: false });
+      if (state.currentProject) state.currentProject.fekMeta = { ...EMPTY_META };
       modal!.close();
+      triggerAutoSave();
       showSaveStatus('Στοιχεία ΦΕΚ διαγράφηκαν');
     });
 
