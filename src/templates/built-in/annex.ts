@@ -8,7 +8,7 @@ export const annexTemplate: Template = {
   category: 'structure',
   fields: [
     { id: 'number', label: 'Αριθμός / Γράμμα (π.χ. Α, Ι, 1)', type: 'text', required: true, placeholder: 'Α' },
-    { id: 'title', label: 'Τίτλος παραρτήματος', type: 'text', required: true,
+    { id: 'title', label: 'Τίτλος παραρτήματος', type: 'text', required: false,
       placeholder: 'π.χ. ΚΑΤΑΛΟΓΟΣ ΑΡΜΟΔΙΩΝ ΑΡΧΩΝ' },
     { id: 'body', label: 'Περιεχόμενο', type: 'container' },
   ],

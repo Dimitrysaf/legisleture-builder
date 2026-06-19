@@ -508,7 +508,7 @@ body[data-nb-mode="code"] .nb-canvas {
    BLOCK TYPES
    ══════════════════════════════════════════════════ */
 
-.nb-block { padding: 4px 0; }
+.nb-block { padding: 0; }
 
 /* ── Shared structural heading ── */
 
@@ -546,16 +546,16 @@ body[data-nb-mode="code"] .nb-canvas {
 .nb-struct-heading--article { font-size: 12pt; }
 
 /* --- Part (Μέρος) --- */
-.nb-block--part { margin: 32px 0 20px; }
+.nb-block--part { margin: 0; }
 
 /* --- Chapter (Κεφάλαιο) --- */
-.nb-block--chapter { margin: 22px 0 14px; }
+.nb-block--chapter { margin: 0; }
 
 /* --- Section (Τμήμα) --- */
-.nb-block--section { margin: 16px 0 10px; }
+.nb-block--section { margin: 0; }
 
 /* --- Article (Άρθρο) --- */
-.nb-block--article { margin: 14px 0; }
+.nb-block--article { margin: 0; }
 
 .nb-article-body {
   text-align: left;
@@ -589,7 +589,7 @@ body[data-nb-mode="code"] .nb-canvas {
 }
 
 /* --- Preamble --- */
-.nb-block--preamble { margin: 20px 0; }
+.nb-block--preamble { margin: 0; }
 
 .nb-preamble {
   font-style: italic;
@@ -633,7 +633,7 @@ body[data-nb-mode="code"] .nb-canvas {
 }
 
 /* --- Image / Figure block --- */
-.nb-block--image { margin: 20px 0; }
+.nb-block--image { margin: 0; }
 
 .nb-figure {
   display: flex;
@@ -735,7 +735,7 @@ body[data-nb-mode="code"] .nb-canvas {
   background: #fefce8;
   border-left: 3px solid #eab308;
   padding: 8px 12px;
-  margin: 10px 0;
+  margin: 0;
   font-family: 'Roboto', system-ui, sans-serif;
   font-size: 10pt;
   font-style: normal;
@@ -759,12 +759,12 @@ body[data-nb-mode="code"] .nb-canvas {
 
 /* --- Custom --- */
 .nb-block--custom {
-  margin: 8px 0;
+  margin: 0;
   font-family: 'Noto Serif', serif;
 }
 
 /* --- Definition (Ορισμός) --- */
-.nb-block--definition { margin: 6px 0; }
+.nb-block--definition { margin: 0; }
 
 .nb-definition {
   display: grid;
@@ -788,7 +788,7 @@ body[data-nb-mode="code"] .nb-canvas {
 }
 
 /* --- Amendment (Τροποποίηση) --- */
-.nb-block--amendment { margin: 10px 0; }
+.nb-block--amendment { margin: 0; }
 
 .nb-amendment {
   margin: 0 0 4px;
@@ -803,12 +803,12 @@ body[data-nb-mode="code"] .nb-canvas {
 }
 
 /* --- Annex (Παράρτημα) --- */
-.nb-block--annex { margin: 28px 0 16px; }
+.nb-block--annex { margin: 0; }
 
 .nb-struct-heading--annex { font-size: 14pt; }
 
 /* --- Transitional (Μεταβατική) --- */
-.nb-block--transitional { margin: 14px 0; }
+.nb-block--transitional { margin: 0; }
 
 .nb-struct-heading--transitional {
   .nb-struct-role { color: #374151; }
@@ -816,7 +816,7 @@ body[data-nb-mode="code"] .nb-canvas {
 
 /* --- Page Break (Αλλαγή Σελίδας) --- */
 .nb-block--pagebreak {
-  margin: 24px 0;
+  margin: 0;
   page-break-after: always;
 }
 
@@ -1213,7 +1213,7 @@ body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
    TABLE (Πίνακας)
    ══════════════════════════════════════════════════ */
 
-.nb-block--table { margin: 16px 0; overflow-x: auto; }
+.nb-block--table { margin: 0; overflow-x: auto; }
 
 .nb-table {
   width: 100%;
@@ -1249,7 +1249,7 @@ body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
    CLOSING / SIGNATURES (Υπογραφές)
    ══════════════════════════════════════════════════ */
 
-.nb-block--closing { margin: 32px 0 20px; }
+.nb-block--closing { margin: 0; }
 
 .nb-closing-date {
   font-weight: 700;
@@ -1279,13 +1279,13 @@ body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
    FINAL ARTICLE (Έναρξη Ισχύος)
    ══════════════════════════════════════════════════ */
 
-.nb-block--final-article { margin: 14px 0; }
+.nb-block--final-article { margin: 0; }
 
 /* ══════════════════════════════════════════════════
    FOOTNOTE (Υποσημείωση)
    ══════════════════════════════════════════════════ */
 
-.nb-block--footnote { margin: 8px 0 0; }
+.nb-block--footnote { margin: 0; }
 
 .nb-footnote-rule {
   border: none;
@@ -1316,7 +1316,7 @@ body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
    INTERPRETIVE DECLARATION (Ερμηνευτική δήλωση)
    ══════════════════════════════════════════════════ */
 
-.nb-block--interpretive { margin: 1px; }
+.nb-block--interpretive { margin: 0; }
 
 .nb-interpretive {
   position: relative;
@@ -1350,12 +1350,12 @@ body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
    TABLE OF CONTENTS (Πίνακας Περιεχομένων)
    ══════════════════════════════════════════════════ */
 
-.nb-block--toc { margin: 20px 0; }
+.nb-block--toc { margin: 0; }
 
 .nb-toc-title {
   font-weight: 700;
   font-size: 12pt;
-  text-align: center;
+  text-align: left;
   letter-spacing: 0.06em;
   margin-bottom: 12px;
   text-transform: uppercase;

@@ -10,6 +10,7 @@
 import { state } from '../state';
 import { escHtml, escAttr } from '../../utils/escape';
 import { showSaveStatus } from '../toast';
+import { showAlert } from '../dialogs';
 import { serializeDocument, downloadBlob } from '../../utils/fileOps';
 import { loadFekMeta } from '../../utils/fekMeta';
 import { buildLawIndex, serializeLawIndex, parseLawIndex } from '../../utils/export/lawIndex';
@@ -116,7 +117,7 @@ export function initLawIndexModal(): void {
         const raw  = JSON.parse(text);
         const idx  = parseLawIndex(raw);
         if (!idx) {
-          alert('Δεν αναγνωρίστηκε ως έγκυρο ευρετήριο νόμου.');
+          showAlert('Δεν αναγνωρίστηκε ως έγκυρο ευρετήριο νόμου.', 'Μη έγκυρο αρχείο');
           return;
         }
         // Give it a stable ID based on lawId to avoid duplicates
@@ -125,7 +126,7 @@ export function initLawIndexModal(): void {
         showSaveStatus(`Εισαγωγή: ${idx.lawId}`);
         renderIndexList(listEl);
       } catch {
-        alert('Σφάλμα ανάγνωσης αρχείου ευρετηρίου.');
+        showAlert('Σφάλμα ανάγνωσης αρχείου ευρετηρίου.', 'Σφάλμα Εισαγωγής');
       }
       fileInput.value = '';
     });

@@ -7,7 +7,8 @@ export const transitionalTemplate: Template = {
   description: 'Μεταβατική διάταξη νόμου',
   category: 'structure',
   fields: [
-    { id: 'number', label: 'Αριθμός διάταξης', type: 'number', required: true, placeholder: '1' },
+    { id: 'number', label: 'Αριθμός διάταξης', type: 'number', required: false, placeholder: '1',
+      hint: 'Αριθμείται αυτόματα ως μεταβατική διάταξη μετά την εισαγωγή.' },
     { id: 'title', label: 'Τίτλος (προαιρετικό)', type: 'text',
       placeholder: 'π.χ. Εφαρμογή υφιστάμενων συμβάσεων' },
     { id: 'body', label: 'Περιεχόμενο', type: 'container' },

@@ -6,6 +6,7 @@ import {
   saveProjectToWorkspace,
 } from '../utils/workspace';
 import { escHtml } from '../utils/escape';
+import { showAlert, showConfirm } from './dialogs';
 import { newProject } from '../types/project';
 import { isProjectFile, isSaveFile } from '../utils/fileOps';
 import type { ProjectStub } from '../utils/workspace';
@@ -70,11 +71,16 @@ async function renderProjects(): Promise<void> {
   });
 
   list.querySelectorAll<HTMLButtonElement>('[data-delete]').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const id = btn.dataset.delete!;
       const card = btn.closest<HTMLElement>('[data-project-id]');
       const name = card?.querySelector<HTMLElement>('[data-project-name]')?.textContent ?? id;
-      if (!confirm(`Διαγραφή έργου «${name}»;\n\nΗ ενέργεια είναι μόνιμη.`)) return;
+      const ok = await showConfirm(
+        `Διαγραφή έργου «${name}»;\n\nΗ ενέργεια είναι μόνιμη.`,
+        'Διαγραφή Έργου',
+        'Διαγραφή',
+      );
+      if (!ok) return;
       deleteProjectAsync(id).then(renderProjects);
     });
   });
@@ -158,7 +164,7 @@ function handleImport(file: File): void {
     let parsed: unknown;
     try { parsed = JSON.parse(text); }
     catch {
-      alert(`Το αρχείο «${file.name}» δεν είναι έγκυρο JSON.`);
+      showAlert(`Το αρχείο «${file.name}» δεν είναι έγκυρο JSON.`, 'Μη έγκυρο αρχείο');
       return;
     }
 
@@ -171,7 +177,7 @@ function handleImport(file: File): void {
       const pf = { version: 2 as const, app: 'legisleture-builder' as const, project };
       saveProjectAsync(pf).then(() => openProject(project.id));
     } else {
-      alert(`Το αρχείο «${file.name}» δεν αναγνωρίστηκε ως αρχείο Legisleture Builder.`);
+      showAlert(`Το αρχείο «${file.name}» δεν αναγνωρίστηκε ως αρχείο Legisleture Builder.`, 'Μη έγκυρο αρχείο');
     }
   });
 }

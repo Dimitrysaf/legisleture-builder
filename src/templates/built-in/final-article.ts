@@ -14,8 +14,9 @@ export const finalArticleTemplate: Template = {
       id: 'number',
       label: 'Αριθμός άρθρου',
       type: 'number',
-      required: true,
+      required: false,
       placeholder: '1',
+      hint: 'Αριθμείται αυτόματα ως το επόμενο άρθρο μετά την εισαγωγή.',
     },
     {
       id: 'custom_text',

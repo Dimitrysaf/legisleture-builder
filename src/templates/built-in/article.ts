@@ -7,7 +7,8 @@ export const articleTemplate: Template = {
   description: 'Βασική μονάδα νόμου με αριθμό, τίτλο και παραγράφους',
   category: 'structure',
   fields: [
-    { id: 'number', label: 'Αριθμός άρθρου', type: 'number', required: true, placeholder: '1' },
+    { id: 'number', label: 'Αριθμός άρθρου', type: 'number', required: true, placeholder: '1',
+      hint: 'Προσυμπληρώνεται αυτόματα — αναριθμείται συνολικά μετά κάθε αλλαγή.' },
     { id: 'title', label: 'Τίτλος (προαιρετικό)', type: 'text', placeholder: 'Πεδίο εφαρμογής' },
     { id: 'body', label: 'Περιεχόμενο', type: 'container' },
   ],

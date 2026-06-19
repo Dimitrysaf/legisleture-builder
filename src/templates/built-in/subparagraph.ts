@@ -8,7 +8,8 @@ export const subparagraphTemplate: Template = {
   description: 'Υποδιαίρεση παραγράφου με ελληνική αλφαβητική αρίθμηση (α, αα, ααα…)',
   category: 'content',
   fields: [
-    { id: 'number', label: 'Αρίθμηση', type: 'text', required: true, placeholder: 'α' },
+    { id: 'number', label: 'Αρίθμηση', type: 'text', required: true, placeholder: 'α',
+      hint: 'Αλφαβητική αρίθμηση (α, αα, ααα…) — προσυμπληρώνεται αυτόματα.' },
     { id: 'content', label: 'Κείμενο', type: 'rich-text', required: true },
     { id: 'subparagraphs', label: 'Υποπαράγραφοι', type: 'container' },
   ],

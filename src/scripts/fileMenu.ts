@@ -1,5 +1,6 @@
 import { state } from './state';
 import { showSaveStatus } from './toast';
+import { showAlert } from './dialogs';
 import { loadFromSaveFile } from './blocks';
 import { serializeDocument, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile } from '../utils/fileOps';
 import { generateLatex } from '../utils/latex';
@@ -50,9 +51,9 @@ function printDocument(): void {
   const html = buildDocHtml(state.paper, hasFekMeta(meta) ? meta : null);
   const popup = window.open('', '_blank');
   if (!popup) {
-    alert(
-      'Ο browser απέκλεισε το παράθυρο εκτύπωσης.\n' +
-      'Παρακαλώ επιτρέψτε τα popups για αυτή τη σελίδα και ξαναπροσπαθήστε.',
+    showAlert(
+      'Ο browser απέκλεισε το παράθυρο εκτύπωσης.\nΠαρακαλώ επιτρέψτε τα popups για αυτή τη σελίδα και ξαναπροσπαθήστε.',
+      'Αποκλεισμένο Popup',
     );
     return;
   }
@@ -78,7 +79,7 @@ export function initFileMenu(): void {
     try {
       text = await file.text();
     } catch {
-      alert('Αδύνατη η ανάγνωση του αρχείου από τον browser.');
+      showAlert('Αδύνατη η ανάγνωση του αρχείου από τον browser.', 'Σφάλμα Ανάγνωσης');
       importInput!.value = '';
       return;
     }
@@ -89,7 +90,10 @@ export function initFileMenu(): void {
       try {
         const saveFile = parseLaTeX(text);
         if (saveFile.blocks.length === 0) {
-          alert(`Το αρχείο «${file.name}» δεν περιείχε αναγνωρίσιμα blocks.\n\nΒεβαιωθείτε ότι εξήχθη από αυτή την εφαρμογή.`);
+          showAlert(
+            `Το αρχείο «${file.name}» δεν περιείχε αναγνωρίσιμα blocks.\n\nΒεβαιωθείτε ότι εξήχθη από αυτή την εφαρμογή.`,
+            'Κενό αρχείο',
+          );
           importInput!.value = '';
           return;
         }
@@ -97,25 +101,25 @@ export function initFileMenu(): void {
         showSaveStatus('Φορτώθηκε από LaTeX');
       } catch (err) {
         console.error('[import tex]', err);
-        alert('Σφάλμα κατά την ανάλυση του .tex αρχείου. Λεπτομέρειες στην κονσόλα.');
+        showAlert('Σφάλμα κατά την ανάλυση του .tex αρχείου.', 'Σφάλμα Εισαγωγής');
       }
     } else {
       let parsed: unknown;
       try {
         parsed = JSON.parse(text);
       } catch {
-        alert(
-          `Το αρχείο «${file.name}» δεν αναγνωρίστηκε.\n\n` +
-          'Η Εισαγωγή δέχεται:\n• Αρχεία .json  (από «Αποθήκευση ως JSON»)\n• Αρχεία .tex   (LaTeX εξαγωγή από αυτή την εφαρμογή)',
+        showAlert(
+          `Το αρχείο «${file.name}» δεν αναγνωρίστηκε.\n\nΗ Εισαγωγή δέχεται:\n• Αρχεία .json  (από «Αποθήκευση ως JSON»)\n• Αρχεία .tex   (LaTeX εξαγωγή από αυτή την εφαρμογή)`,
+          'Μη έγκυρο αρχείο',
         );
         importInput!.value = '';
         return;
       }
 
       if (!isSaveFile(parsed)) {
-        alert(
-          `Το αρχείο «${file.name}» δεν είναι έγκυρο αρχείο αποθήκευσης.\n\n` +
-          'Βεβαιωθείτε ότι επιλέξατε αρχείο .json που εξήχθη από «Αποθήκευση ως JSON».',
+        showAlert(
+          `Το αρχείο «${file.name}» δεν είναι έγκυρο αρχείο αποθήκευσης.\n\nΒεβαιωθείτε ότι επιλέξατε αρχείο .json που εξήχθη από «Αποθήκευση ως JSON».`,
+          'Μη έγκυρο αρχείο',
         );
         importInput!.value = '';
         return;
@@ -126,7 +130,7 @@ export function initFileMenu(): void {
         showSaveStatus('Φορτώθηκε επιτυχώς');
       } catch (err) {
         console.error('[import json]', err);
-        alert('Σφάλμα κατά την ανακατασκευή του εγγράφου. Λεπτομέρειες στην κονσόλα.');
+        showAlert('Σφάλμα κατά την ανακατασκευή του εγγράφου.', 'Σφάλμα Εισαγωγής');
       }
     }
 

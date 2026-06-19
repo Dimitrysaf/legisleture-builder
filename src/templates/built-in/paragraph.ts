@@ -8,7 +8,8 @@ export const paragraphTemplate: Template = {
   description: 'Αριθμημένη παράγραφος μέσα σε άρθρο',
   category: 'content',
   fields: [
-    { id: 'number', label: 'Αριθμός παραγράφου', type: 'number', required: true, placeholder: '1' },
+    { id: 'number', label: 'Αριθμός παραγράφου', type: 'number', required: true, placeholder: '1',
+      hint: 'Προσυμπληρώνεται αυτόματα — αναριθμείται συνολικά μετά κάθε αλλαγή.' },
     { id: 'content', label: 'Κείμενο', type: 'rich-text', required: true },
     { id: 'subparagraphs', label: 'Υποπαράγραφοι', type: 'container' },
   ],

@@ -1,5 +1,6 @@
 import type { Template } from '../types';
 import { toInline } from '../../utils/inline';
+import { escAttr } from '../../utils/escape';
 
 // Machine-readable action values; display labels are derived in render()
 export const AMENDMENT_ACTIONS = [
@@ -77,7 +78,7 @@ export const amendmentTemplate: Template = {
       ? `\n  <blockquote class="nb-amendment-text">«${body}»</blockquote>`
       : '';
 
-    return `<div class="nb-block nb-block--amendment" data-template="amendment" data-law-id="${(data.targetLawId ?? '').replace(/"/g, '&quot;')}" data-target-path="${(data.targetPath ?? '').replace(/"/g, '&quot;')}" data-action="${action}">
+    return `<div class="nb-block nb-block--amendment" data-template="amendment" data-law-id="${escAttr(data.targetLawId ?? '')}" data-target-path="${escAttr(data.targetPath ?? '')}" data-action="${action}">
   <p class="nb-amendment">${introVerb}</p>${bodyHtml}
 </div>`;
   },

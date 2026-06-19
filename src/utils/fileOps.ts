@@ -123,7 +123,7 @@ body {
 
 /* ── Block wrappers ── */
 .nb-block-wrapper { display: block; position: relative; }
-.nb-block { padding: 4px 0; }
+.nb-block { padding: 0; }
 
 /* ── Structural headings ── */
 .nb-struct-heading { display: inline-flex; flex-direction: column; line-height: 1.25; margin-bottom: 8px; }
@@ -138,12 +138,12 @@ body {
 .nb-struct-heading--annex       { font-size: 14pt; }
 
 /* ── Structural block margins ── */
-.nb-block--part        { margin: 32px 0 20px; }
-.nb-block--chapter     { margin: 22px 0 14px; }
-.nb-block--section     { margin: 16px 0 10px; }
+.nb-block--part        { margin: 0; }
+.nb-block--chapter     { margin: 0; }
+.nb-block--section     { margin: 0; }
 .nb-block--article,
-.nb-block--transitional { margin: 14px 0; }
-.nb-block--annex       { margin: 28px 0 16px; }
+.nb-block--transitional { margin: 0; }
+.nb-block--annex       { margin: 0; }
 
 /* ── Article body ── */
 .nb-article-body    { text-align: left; }
@@ -159,7 +159,7 @@ body {
 .nb-subpara-zone { padding-left: 22px; }
 
 /* ── Preamble ── */
-.nb-block--preamble         { margin: 20px 0; }
+.nb-block--preamble         { margin: 0; }
 .nb-preamble                { font-style: italic; text-align: left; }
 .nb-preamble p              { margin: 4px 0; }
 .nb-preamble-authority      { font-style: normal; font-weight: 700; text-align: left; letter-spacing: 0.04em; margin-bottom: 12px; }
@@ -179,14 +179,14 @@ body {
 .nb-ref { color: #003476; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
 
 /* ── Definition ── */
-.nb-block--definition { margin: 6px 0; }
+.nb-block--definition { margin: 0; }
 .nb-definition { display: grid; grid-template-columns: auto 1fr; gap: 0 16px; }
 .nb-def-term   { font-weight: 700; font-style: italic; white-space: nowrap; padding-top: 1px; }
 .nb-def-term::after { content: ':'; }
 .nb-def-body   { margin: 0; line-height: 1.55; }
 
 /* ── Amendment ── */
-.nb-block--amendment { margin: 10px 0; }
+.nb-block--amendment { margin: 0; }
 .nb-amendment        { margin: 0 0 4px; font-style: italic; }
 .nb-amendment-text   { margin: 4px 0 0 16px; padding: 6px 12px; border-left: 2px solid #0b0c0c; }
 
@@ -197,7 +197,7 @@ body {
 .nb-block--plaintext { margin: 0; padding: 0; }
 
 /* ── Image / Figure ── */
-.nb-block--image    { margin: 20px 0; }
+.nb-block--image    { margin: 0; }
 .nb-figure          { display: flex; flex-direction: column; margin: 0; }
 .nb-figure-img      { display: block; height: auto; max-width: 100%; border: 1px solid #e5e7eb; }
 .nb-figure-caption  { font-size: 9pt; color: #6b7280; text-align: left; margin-top: 5pt; font-style: italic; line-height: 1.4; }
@@ -211,7 +211,7 @@ body {
 .nb-pagebreak        { display: none; }
 
 /* ── Table ── */
-.nb-block--table { margin: 16px 0; overflow-x: auto; }
+.nb-block--table { margin: 0; overflow-x: auto; }
 .nb-table { width: 100%; border-collapse: collapse; font-size: 10.5pt; line-height: 1.4; }
 .nb-table th, .nb-table td { border: 1px solid #374151; padding: 5px 10px; text-align: left; vertical-align: top; }
 .nb-table thead th { background: #f3f4f6; font-weight: 700; }
@@ -219,7 +219,7 @@ body {
 .nb-table-caption { font-size: 9pt; color: #6b7280; font-style: italic; margin-bottom: 4pt; caption-side: top; text-align: left; }
 
 /* ── Closing / Signatures ── */
-.nb-block--closing { margin: 32px 0 20px; }
+.nb-block--closing { margin: 0; }
 .nb-closing-date { font-weight: 700; margin-bottom: 24px; }
 .nb-signatories { display: flex; flex-wrap: wrap; gap: 32px 48px; }
 .nb-signatory { min-width: 160px; }
@@ -227,18 +227,18 @@ body {
 .nb-signatory-name { font-size: 10.5pt; }
 
 /* ── Final Article ── */
-.nb-block--final-article { margin: 14px 0; }
+.nb-block--final-article { margin: 0; }
 
 /* ── Footnote ── */
-.nb-block--footnote { margin: 8px 0 0; }
+.nb-block--footnote { margin: 0; }
 .nb-footnote-rule { border: none; border-top: 1px solid #9ca3af; width: 33%; margin: 4px 0 6px; }
 .nb-footnote { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; font-size: 9pt; line-height: 1.5; }
 .nb-footnote-marker { font-weight: 700; white-space: nowrap; padding-top: 1px; }
 .nb-footnote-body p { margin: 2px 0; }
 
 /* ── Table of Contents ── */
-.nb-block--toc { margin: 20px 0; }
-.nb-toc-title { font-weight: 700; font-size: 12pt; text-align: center; letter-spacing: 0.06em; margin-bottom: 12px; text-transform: uppercase; }
+.nb-block--toc { margin: 0; }
+.nb-toc-title { font-weight: 700; font-size: 12pt; text-align: left; letter-spacing: 0.06em; margin-bottom: 12px; text-transform: uppercase; }
 .nb-toc-body { line-height: 1.8; }
 .nb-toc-empty { font-style: italic; color: #6b7280; font-size: 10pt; }
 .nb-toc-item { padding: 1px 0; }
@@ -248,7 +248,7 @@ body {
 .nb-toc-item--article, .nb-toc-item--final-article { padding-left: 36px; font-size: 10pt; }
 .nb-toc-item--annex { font-weight: 700; margin-top: 6px; }
 .nb-toc-item--transitional { padding-left: 36px; font-size: 10pt; font-style: italic; }
-.nb-block--interpretive { margin: 1px; }
+.nb-block--interpretive { margin: 0; }
 .nb-interpretive { position: relative; border-top: 1.5px solid #374151; padding: 1px; }
 .nb-interpretive::before, .nb-interpretive::after { content: ''; position: absolute; top: 0; width: 1.5px; height: 2.2em; background: linear-gradient(to bottom, #374151 0%, transparent 100%); }
 .nb-interpretive::before { left: 0; }
