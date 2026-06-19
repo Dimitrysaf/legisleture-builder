@@ -1,0 +1,466 @@
+/* ══════════════════════════════════════════════════
+   FORM EDITOR — guided document editor pane
+   ══════════════════════════════════════════════════ */
+
+.nb-form-pane {
+  flex: 1;
+  overflow-y: auto;
+  background: #f1f5f9;
+  padding: 32px 20px 64px;
+  min-width: 0;
+}
+
+.nb-fe-doc {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Cards ──────────────────────────────────────── */
+
+.nb-fe-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.nb-fe-card--preamble  { border-left: 4px solid #6366f1; }
+.nb-fe-card--article   { border-left: 4px solid #003476; }
+.nb-fe-card--structural { border-left: 4px solid #0ea5e9; }
+.nb-fe-card--transitional { border-left: 4px solid #8b5cf6; }
+.nb-fe-card--amendment { border-left: 4px solid #f59e0b; }
+.nb-fe-card--closing   { border-left: 4px solid #10b981; }
+.nb-fe-card--generic   { border-left: 4px solid #94a3b8; }
+.nb-fe-card--annex     { border-left: 4px solid #64748b; }
+
+.nb-fe-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+
+  // Push action buttons to the right on cards that have no flex:1 title input
+  > button:first-of-type {
+    margin-left: auto;
+  }
+}
+
+.nb-fe-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nb-fe-title {
+  flex: 1;
+  border: 1px solid #e2e8f0;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  background: white;
+  min-width: 0;
+
+  &:focus {
+    outline: none;
+    border-color: #003476;
+    box-shadow: 0 0 0 2px rgba(0, 52, 118, 0.12);
+  }
+}
+
+.nb-fe-del-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover {
+    color: #ef4444;
+    border-color: #fca5a5;
+    background: #fef2f2;
+  }
+}
+
+.nb-fe-move-btn {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #475569;
+  }
+}
+
+.nb-fe-edit-btn {
+  font-size: 12px;
+  padding: 2px 8px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+  }
+}
+
+/* ── Field rows ─────────────────────────────────── */
+
+.nb-fe-field-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:last-child { border-bottom: none; }
+}
+
+.nb-fe-field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 12px;
+}
+
+.nb-fe-text-input {
+  border: none;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: #1e293b;
+  background: transparent;
+  width: 100%;
+
+  &:focus {
+    outline: none;
+    background: #f8fbff;
+    box-shadow: inset 0 0 0 2px rgba(0, 52, 118, 0.15);
+  }
+}
+
+.nb-fe-select {
+  border: none;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: #1e293b;
+  background: transparent;
+  width: 100%;
+  cursor: pointer;
+
+  &:focus { outline: none; }
+}
+
+/* ── Rich text contenteditable ──────────────────── */
+
+.nb-fe-rich {
+  padding: 10px 14px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #1e293b;
+  min-height: 38px;
+  outline: none;
+  width: 100%;
+
+  &:focus {
+    background: #f8fbff;
+    box-shadow: inset 0 0 0 2px rgba(0, 52, 118, 0.15);
+  }
+
+  &:empty::before {
+    content: attr(data-placeholder);
+    color: #94a3b8;
+    pointer-events: none;
+  }
+
+  p { margin: 0 0 4px; }
+  strong, b { font-weight: 700; }
+  em, i { font-style: italic; }
+}
+
+/* ── Paragraphs inside article cards ────────────── */
+
+.nb-fe-body {
+  padding: 0 0 0 0;
+}
+
+.nb-fe-para-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  gap: 0;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: start;
+
+  &:last-child { border-bottom: none; }
+
+  .nb-fe-rich { grid-column: 2; }
+}
+
+.nb-fe-para-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  padding: 12px 0 0 14px;
+  align-self: start;
+}
+
+.nb-fe-para-row > .nb-fe-del-btn {
+  margin-top: 8px;
+  align-self: start;
+}
+
+/* ── Subparagraphs ──────────────────────────────── */
+
+.nb-fe-subparas {
+  grid-column: 1 / -1;
+  padding-left: 28px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.nb-fe-subparas--nested {
+  padding-left: 24px;
+  border-top: none;
+}
+
+.nb-fe-subpara-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  gap: 0;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: start;
+  background: #fafbfd;
+
+  &:last-child { border-bottom: none; }
+}
+
+.nb-fe-subpara-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6366f1;
+  padding: 10px 0 0 8px;
+}
+
+/* ── Add buttons ────────────────────────────────── */
+
+.nb-fe-add-child-btn {
+  display: block;
+  width: 100%;
+  padding: 7px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #f8fafc;
+  border: none;
+  border-top: 1px dashed #e2e8f0;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  &.nb-fe-add-child-btn--sub {
+    color: #6366f1;
+    font-size: 11.5px;
+    padding: 6px 12px;
+
+    &:hover { background: #eef2ff; color: #4338ca; }
+  }
+}
+
+/* ── Body add row (paragraph + content dropdown) ─────────────────────────── */
+
+.nb-fe-add-row {
+  display: flex;
+  border-top: 1px dashed #e2e8f0;
+
+  .nb-fe-add-child-btn {
+    border-top: none;
+    flex: 1;
+  }
+}
+
+.nb-fe-content-wrap {
+  position: relative;
+  border-left: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.nb-fe-content-trigger {
+  display: block;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f8fafc;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  height: 100%;
+
+  &:hover { background: #f1f5f9; color: #334155; }
+}
+
+.nb-fe-content-drop {
+  top: calc(100% + 2px);
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+/* ── Add bar (between sections) ─────────────────── */
+
+// NO opacity here — opacity < 1 creates a stacking context that traps the
+// dropdown behind subsequent cards regardless of z-index.
+// Subtlety is achieved purely through faint colors on the trigger.
+
+.nb-fe-add-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  margin: 2px 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 1px;
+    background: #e8ecf0;
+    transition: background 0.15s;
+  }
+
+  &:hover::before { background: #cbd5e1; }
+}
+
+.nb-fe-add-wrap {
+  position: relative;
+}
+
+.nb-fe-add-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #f8fafc;
+  border: 1.5px solid #dde3ea;
+  border-radius: 14px;
+  // Default: very faint — blends with background
+  color: #c4cdd6;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+  // Hovering the bar makes it visible
+  .nb-fe-add-bar:hover & {
+    border-color: #94a3b8;
+    color: #64748b;
+  }
+
+  // Hovering the trigger itself → brand blue
+  &:hover,
+  &:focus-visible {
+    border-color: #003476 !important;
+    color: #003476 !important;
+    background: #eef2ff !important;
+    outline: none;
+  }
+}
+
+.nb-fe-add-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 210px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.06);
+  z-index: 500;
+  padding: 4px 0;
+}
+
+.nb-fe-add-opt {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: system-ui, -apple-system, sans-serif;
+  transition: background 0.08s;
+
+  &:hover { background: #f1f5f9; }
+}
+
+/* ── Nested zone ─────────────────────────────────── */
+
+.nb-fe-zone-inner {
+  padding: 8px 8px 8px 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+
+  .nb-fe-card {
+    margin-bottom: 8px;
+  }
+}
+
+/* ── Generic preview ─────────────────────────────── */
+
+.nb-fe-generic-preview {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* ── Validation — empty required field ───────────── */
+
+.nb-fe-field-empty {
+  border-color: #f59e0b !important;
+  background: #fffbeb !important;
+  box-shadow: inset 0 0 0 2px rgba(245, 158, 11, 0.2) !important;
+}

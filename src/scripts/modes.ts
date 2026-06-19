@@ -1,8 +1,8 @@
 import type { AppMode } from './state';
 import { state } from './state';
-import { generateLatex } from '../utils/latex';
 import { buildDocHtml } from '../utils/fileOps';
 import { EMPTY_META, hasFekMeta, buildFekHeaderHtml } from '../utils/fekMeta';
+import { renderFormDoc, flushFormEdits } from './formEditor';
 
 export function buildPreviewPages(): HTMLElement {
   const fekMeta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
@@ -106,13 +106,14 @@ export function refreshPreviewPane(): void {
 }
 
 export function applyModes(modes: AppMode[]): void {
+  if (!modes.includes('edit')) flushFormEdits();
+
   state.activeModes = modes;
-  const isSplit = modes.length === 2;
+  const isSplit    = modes.length === 2;
   const hasEdit    = modes.includes('edit');
   const hasPreview = modes.includes('preview');
-  const hasCode    = modes.includes('code');
 
-  state.currentMode = hasEdit ? 'edit' : hasPreview ? 'preview' : 'code';
+  state.currentMode = hasEdit ? 'edit' : 'preview';
   document.body.dataset.nbMode = state.currentMode;
   document.body.classList.toggle('nb-split', isSplit);
 
@@ -125,20 +126,16 @@ export function applyModes(modes: AppMode[]): void {
     tab.disabled = isDisabled;
   });
 
-  const canvas      = document.getElementById('nb-canvas');
+  const formPane    = document.getElementById('nb-form-pane');
   const previewPane = document.getElementById('nb-preview-pane');
-  const codePanel   = document.getElementById('nb-code-panel');
+  const canvas      = document.getElementById('nb-canvas');
+  if (canvas) canvas.style.display = 'none';
 
-  if (canvas)      canvas.style.display      = hasEdit    ? ''     : 'none';
-  if (previewPane) previewPane.style.display  = hasPreview ? 'flex' : 'none';
-  if (codePanel)   codePanel.style.display    = hasCode    ? ''     : 'none';
+  if (formPane)    formPane.style.display   = hasEdit    ? ''     : 'none';
+  if (previewPane) previewPane.style.display = hasPreview ? 'flex' : 'none';
 
+  if (hasEdit) renderFormDoc();
   if (hasPreview) refreshPreviewPane();
-
-  if (hasCode) {
-    const codeEl = document.getElementById('nb-code-content');
-    if (codeEl) codeEl.textContent = generateLatex(state.paper, state.instances);
-  }
 }
 
 export function initModeTabs(): void {
@@ -160,24 +157,4 @@ export function initModeTabs(): void {
     });
   });
 
-  document.getElementById('nb-code-copy')?.addEventListener('click', (e) => {
-    const content = document.getElementById('nb-code-content')?.textContent ?? '';
-    navigator.clipboard.writeText(content).then(() => {
-      const btn = e.currentTarget as HTMLButtonElement;
-      const orig = btn.innerHTML;
-      btn.textContent = 'Αντιγράφηκε!';
-      setTimeout(() => { btn.innerHTML = orig; }, 1500);
-    });
-  });
-
-  document.getElementById('nb-code-download')?.addEventListener('click', () => {
-    const content = document.getElementById('nb-code-content')?.textContent ?? '';
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'nomos.tex';
-    a.click();
-    URL.revokeObjectURL(url);
-  });
 }

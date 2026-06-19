@@ -1,7 +1,7 @@
 import type { TemplateInstance } from '../templates/types';
 import type { Project } from '../types/project';
 
-export type AppMode = 'edit' | 'preview' | 'code';
+export type AppMode = 'edit' | 'preview';
 
 export const state = {
   paper: null as unknown as HTMLElement,

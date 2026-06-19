@@ -214,17 +214,19 @@ function wrapperToLatex(wrapper: HTMLElement, instances: Map<string, TemplateIns
 export function generateLatex(paper: HTMLElement, instances: Map<string, TemplateInstance>): string {
   const body = containerToLatex(paper, instances) || '% (κενό έγγραφο)';
   return [
+    '% Απαιτείται XeLaTeX — μεταγλώττιση: xelatex nomos.tex',
     '\\documentclass[12pt,a4paper]{article}',
-    '\\usepackage[utf8]{inputenc}',
-    '\\usepackage[LGR,T1]{fontenc}',
-    '\\usepackage[greek,english]{babel}',
+    '\\usepackage{fontspec}',
+    '\\setmainfont{GFS Didot}',
+    '\\usepackage{polyglossia}',
+    '\\setmainlanguage{greek}',
+    '\\setotherlanguage{english}',
     '\\usepackage{geometry}',
     '\\usepackage{setspace}',
     '\\geometry{a4paper,top=25mm,bottom=25mm,left=30mm,right=25mm}',
     '\\setstretch{1.5}',
     '',
     '\\begin{document}',
-    '\\selectlanguage{greek}',
     '',
     body,
     '',

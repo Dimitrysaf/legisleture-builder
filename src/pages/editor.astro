@@ -2,83 +2,40 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Επεξεργαστής — Legisleture Builder">
-  <div class="drawer lg:drawer-open h-screen" id="nb-app">
-    <input id="nb-drawer-toggle" type="checkbox" class="drawer-toggle" checked />
+<Layout title="Επεξεργαστής — Legisleture Builder" bodyClass="nb-editor-body">
+  <div class="nb-app" id="nb-app">
 
-    <!-- Main content -->
-    <div class="drawer-content flex flex-col overflow-hidden h-full">
-      <!-- Mobile menu toggle -->
-      <div class="lg:hidden flex items-center gap-2 px-4 py-2 bg-base-100 border-b border-base-300 sticky top-0 z-10 flex-shrink-0">
-        <label for="nb-drawer-toggle" class="btn btn-ghost btn-sm gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          Μενού
-        </label>
-      </div>
+    <!-- Horizontal menu bar (rendered by menubar.ts) -->
+    <div class="nb-menubar" id="nb-menubar"></div>
 
-      <!-- Restore session banner -->
-      <div class="nb-restore-banner flex-shrink-0" id="nb-restore-banner" hidden>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        <span>Βρέθηκε αυτόματη αποθήκευση από <strong class="nb-restore-time"></strong></span>
-        <button class="nb-restore-btn nb-restore-btn--yes" id="nb-restore-yes" type="button">Επαναφορά</button>
-        <button class="nb-restore-btn" id="nb-restore-dismiss" type="button">Κλείσιμο</button>
-      </div>
-
-      <!-- Panels container (layout switches between column / row for split view) -->
-      <div id="nb-panels" class="nb-panels">
-
-        <!-- Edit pane (canvas) -->
-        <div class="nb-canvas" id="nb-canvas">
-          <button class="nb-page-add-btn" id="nb-add-page-top" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            Νέα Σελίδα πάνω
-          </button>
-          <div class="nb-paper" id="nb-paper"></div>
-          <button class="nb-page-add-btn" id="nb-add-page-bottom" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            Νέα Σελίδα κάτω
-          </button>
-        </div>
-
-        <!-- Preview pane (used for preview mode and edit+preview split) -->
-        <div class="nb-preview-pane" id="nb-preview-pane"></div>
-
-        <!-- Code panel (code / LaTeX mode) -->
-        <div class="nb-code-panel" id="nb-code-panel">
-          <div class="nb-code-toolbar">
-            <span class="nb-code-label">LaTeX Source</span>
-            <div class="nb-code-actions">
-              <button class="nb-code-btn" id="nb-code-copy">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                Αντιγραφή
-              </button>
-              <button class="nb-code-btn" id="nb-code-download">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Λήψη .tex
-              </button>
-            </div>
-          </div>
-          <pre class="nb-code-content" id="nb-code-content"></pre>
-        </div>
-
-      </div><!-- /#nb-panels -->
+    <!-- Restore session banner -->
+    <div class="nb-restore-banner" id="nb-restore-banner" hidden>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span>Βρέθηκε αυτόματη αποθήκευση από <strong class="nb-restore-time"></strong></span>
+      <button class="nb-restore-btn nb-restore-btn--yes" id="nb-restore-yes" type="button">Επαναφορά</button>
+      <button class="nb-restore-btn" id="nb-restore-dismiss" type="button">Κλείσιμο</button>
     </div>
 
-    <!-- Sidebar / Toolbar -->
-    <div class="drawer-side z-40">
-      <label for="nb-drawer-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
-      <div id="nb-toolbar" class="flex flex-col w-72 min-h-full bg-base-200 border-r border-base-300"></div>
-    </div>
-  </div>
+    <!-- Panels container -->
+    <div id="nb-panels" class="nb-panels">
+
+      <!-- Form editor pane (guided editing — default) -->
+      <div class="nb-form-pane" id="nb-form-pane"></div>
+
+      <!-- Preview pane -->
+      <div class="nb-preview-pane" id="nb-preview-pane"></div>
+
+
+</div><!-- /#nb-panels -->
+  </div><!-- /#nb-app -->
+
+  <!-- Hidden paper (backing store — off-screen, never visible to user) -->
+  <div id="nb-paper" class="nb-paper"
+    style="position:fixed;left:-9999px;top:0;visibility:hidden;pointer-events:none;min-height:0;"></div>
+
+  <!-- Hidden file input for import -->
+  <input type="file" id="nb-import-input" accept=".json,.tex,.latex"
+    style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0);pointer-events:none;">
 </Layout>
 
 <script>

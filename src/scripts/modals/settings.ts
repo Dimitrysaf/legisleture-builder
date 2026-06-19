@@ -4,7 +4,7 @@ import { showSaveStatus } from '../toast';
 const SETTINGS_KEY = 'nb_settings_v1';
 
 interface AppSettings {
-  theme: 'light' | 'dark' | 'macos';
+  theme: 'light' | 'dark';
   fontFamily: 'serif' | 'sans';
   paperWidth: 'narrow' | 'normal';
 }
@@ -12,7 +12,11 @@ interface AppSettings {
 function loadSettings(): AppSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) return { theme: 'light', fontFamily: 'serif', paperWidth: 'normal', ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.theme === 'macos') parsed.theme = 'light';
+      return { theme: 'light', fontFamily: 'serif', paperWidth: 'normal', ...parsed };
+    }
   } catch {}
   return { theme: 'light', fontFamily: 'serif', paperWidth: 'normal' };
 }
@@ -22,8 +26,7 @@ function saveSettings(s: AppSettings): void {
 }
 
 function applySettings(s: AppSettings): void {
-  const themeMap: Record<AppSettings['theme'], string> = { light: 'light', dark: 'dark', macos: 'macos' };
-  document.documentElement.setAttribute('data-theme', themeMap[s.theme] ?? 'light');
+  document.documentElement.setAttribute('data-theme', s.theme === 'dark' ? 'dark' : 'light');
   state.paper.style.fontFamily = s.fontFamily === 'sans'
     ? "system-ui, -apple-system, sans-serif"
     : "";
@@ -62,7 +65,6 @@ export function initSettingsModal(): void {
             <select name="theme" class="select select-bordered select-sm w-full">
               <option value="light" ${s.theme === 'light' ? 'selected' : ''}>Φωτεινό (Light)</option>
               <option value="dark"  ${s.theme === 'dark'  ? 'selected' : ''}>Σκοτεινό (Dark)</option>
-              <option value="macos" ${s.theme === 'macos' ? 'selected' : ''}>macOS X (Aqua)</option>
             </select>
           </div>
 

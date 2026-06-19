@@ -9,6 +9,10 @@ function getToastContainer(): HTMLElement {
   return state.toastEl;
 }
 
+export function showSaveFeedback(text: string): void {
+  document.dispatchEvent(new CustomEvent('nb:saved', { detail: { text } }));
+}
+
 export function showSaveStatus(msg: string): void {
   const container = getToastContainer();
   const toast = document.createElement('div');

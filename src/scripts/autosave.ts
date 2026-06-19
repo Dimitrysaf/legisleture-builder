@@ -1,5 +1,5 @@
 import { state } from './state';
-import { showSaveStatus } from './toast';
+import { showSaveStatus, showSaveFeedback } from './toast';
 import { serializeProject } from '../utils/fileOps';
 import { newProject } from '../types/project';
 import { saveProjectToWorkspace, saveProjectAsync } from '../utils/workspace';
@@ -13,6 +13,7 @@ let _lastCheckpointVersion = -1;
 
 export function markDocChanged(): void {
   state.docVersion++;
+  document.dispatchEvent(new CustomEvent('nb:unsaved'));
 }
 
 export function triggerAutoSave(): void {
@@ -37,7 +38,7 @@ export function triggerAutoSave(): void {
     // Async save to IndexedDB (primary, no size limit)
     saveProjectAsync(pf)
       .then(() => {
-        showSaveStatus('Αποθηκεύτηκε αυτόματα');
+        showSaveFeedback('Αποθηκεύτηκε αυτόματα');
         // Create auto-checkpoint every CHECKPOINT_INTERVAL versions
         if (state.currentProject && state.docVersion - _lastCheckpointVersion >= CHECKPOINT_INTERVAL) {
           _lastCheckpointVersion = state.docVersion;

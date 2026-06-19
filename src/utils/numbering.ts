@@ -99,7 +99,7 @@ function applyNumber(
   const tid = inst.templateId;
   if (tid === 'paragraph' || tid === 'subparagraph') {
     const numEl = wrapper.querySelector<HTMLElement>(':scope > .nb-block .nb-para-num');
-    if (numEl) numEl.textContent = `${newNum}.`;
+    if (numEl) numEl.textContent = tid === 'subparagraph' ? `${newNum})` : `${newNum}.`;
   } else {
     const prefix = STRUCT_PREFIX[tid];
     if (prefix) {
@@ -184,6 +184,8 @@ function walkStructure(
       case 'final-article': {
         counters.article++;
         applyNumber(el, inst, String(counters.article));
+        const z = zoneEl(el, 'body');
+        if (z) walkParagraphZone(z, instances);
         break;
       }
       case 'transitional': {

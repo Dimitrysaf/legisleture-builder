@@ -15,7 +15,7 @@ export const subparagraphTemplate: Template = {
   ],
   render(data) {
     return `<div class="nb-block nb-block--subparagraph" data-template="subparagraph">
-  <div class="nb-paragraph"><span class="nb-para-num">${data.number}.</span> ${toInline(data.content ?? '')}</div>
+  <div class="nb-paragraph"><span class="nb-para-num">${data.number})</span> ${toInline(data.content ?? '')}</div>
   <div class="nb-container-zone nb-subpara-zone" data-container-for="subparagraphs"></div>
 </div>`;
   },

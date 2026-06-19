@@ -1,12 +1,13 @@
 import { state } from './state';
 import { showSaveStatus } from './toast';
 import { showAlert } from './dialogs';
-import { loadFromSaveFile } from './blocks';
-import { serializeDocument, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile } from '../utils/fileOps';
+import { loadFromSaveFile, loadFromProject } from './blocks';
+import { serializeDocument, serializeProject, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile } from '../utils/fileOps';
 import { generateLatex } from '../utils/latex';
 import { EMPTY_META, hasFekMeta } from '../utils/fekMeta';
 import { parseLaTeX } from '../utils/latexImport';
 import { exportAkomaNtoso } from '../utils/export/akoma';
+import { saveAsPackage, loadFromPackage, isFolderPackageSupported } from '../utils/folderPackage';
 
 function saveAsJson(): void {
   const data = serializeDocument(state.paper, state.instances);
@@ -46,6 +47,51 @@ function exportAkomaFile(): void {
   showSaveStatus('Εξαγωγή Akoma Ntoso XML');
 }
 
+async function saveProjectPackage(): Promise<void> {
+  if (!isFolderPackageSupported()) {
+    showAlert(
+      'Ο browser σας δεν υποστηρίζει αποθήκευση ως φάκελο.\nΧρησιμοποιήστε Chrome ή Edge.',
+      'Μη υποστηριζόμενο',
+    );
+    return;
+  }
+  const proj = state.currentProject;
+  if (!proj) {
+    showAlert('Δεν υπάρχει τρέχον έργο. Αποθηκεύστε πρώτα το έγγραφο.', 'Χωρίς έργο');
+    return;
+  }
+  try {
+    const pf = serializeProject(state.paper, state.instances, proj);
+    await saveAsPackage(pf);
+    showSaveStatus('Αποθηκεύτηκε ως φάκελος');
+  } catch (err) {
+    if ((err as DOMException)?.name !== 'AbortError') {
+      console.error('[save-package]', err);
+      showAlert('Σφάλμα κατά την αποθήκευση φακέλου.', 'Σφάλμα');
+    }
+  }
+}
+
+async function loadProjectPackage(): Promise<void> {
+  if (!isFolderPackageSupported()) {
+    showAlert(
+      'Ο browser σας δεν υποστηρίζει άνοιγμα φακέλου.\nΧρησιμοποιήστε Chrome ή Edge.',
+      'Μη υποστηριζόμενο',
+    );
+    return;
+  }
+  try {
+    const pf = await loadFromPackage();
+    loadFromProject(pf.project);
+    showSaveStatus('Φορτώθηκε από φάκελο');
+  } catch (err) {
+    if ((err as DOMException)?.name !== 'AbortError') {
+      console.error('[load-package]', err);
+      showAlert('Σφάλμα κατά την φόρτωση φακέλου.', 'Σφάλμα');
+    }
+  }
+}
+
 function printDocument(): void {
   const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
   const html = buildDocHtml(state.paper, hasFekMeta(meta) ? meta : null);
@@ -66,7 +112,6 @@ function printDocument(): void {
 export function initFileMenu(): void {
   const importBtn = document.getElementById('nb-import-btn');
   const importInput = document.getElementById('nb-import-input') as HTMLInputElement | null;
-  const trigger = document.getElementById('nb-export-trigger');
   const menu = document.getElementById('nb-file-menu');
 
   importBtn?.addEventListener('click', () => importInput?.click());
@@ -137,19 +182,13 @@ export function initFileMenu(): void {
     importInput!.value = '';
   });
 
-  trigger?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    menu?.toggleAttribute('hidden');
-  });
-
-  document.addEventListener('click', () => menu?.setAttribute('hidden', ''));
-  menu?.addEventListener('click', (e) => e.stopPropagation());
-
   menu?.querySelectorAll<HTMLButtonElement>('[data-file-action]').forEach(btn => {
     btn.addEventListener('click', () => {
       menu!.setAttribute('hidden', '');
       switch (btn.dataset.fileAction) {
         case 'save-json':       saveAsJson(); break;
+        case 'save-package':    saveProjectPackage(); break;
+        case 'load-package':    loadProjectPackage(); break;
         case 'export-html':     exportHtmlFile(); break;
         case 'export-fek-html': exportFekHtmlFile(); break;
         case 'export-latex':    exportLatexFile(); break;

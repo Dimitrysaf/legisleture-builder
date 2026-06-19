@@ -139,6 +139,38 @@ export function insertBlock(
   return wrapper;
 }
 
+export function patchBlock(instanceId: string, newData: Record<string, string>): void {
+  const inst = state.instances.get(instanceId);
+  if (!inst) return;
+  const tpl = getTemplate(inst.templateId);
+  if (!tpl) return;
+  const wrapper = document.querySelector<HTMLElement>(`[data-instance-id="${instanceId}"]`);
+  if (!wrapper) return;
+
+  const saved = new Map<string, Node[]>();
+  wrapper.querySelectorAll<HTMLElement>('.nb-container-zone').forEach(z => {
+    saved.set(z.dataset.containerFor!, Array.from(z.childNodes));
+  });
+
+  const updated = { ...inst, data: { ...inst.data, ...newData } };
+  const actions = wrapper.querySelector<HTMLElement>('.nb-block-actions');
+  wrapper.innerHTML = tpl.render(updated.data);
+  if (actions) wrapper.appendChild(actions);
+
+  wrapper.querySelectorAll<HTMLElement>('.nb-container-zone').forEach(z => {
+    (saved.get(z.dataset.containerFor!) ?? []).forEach(c => z.appendChild(c));
+    initContainerZone(z);
+  });
+
+  state.instances.set(instanceId, updated);
+  registerEntry(instanceId, updated.templateId, updated.data);
+  triggerAutoSave();
+}
+
+export function snapForUndo(): void {
+  pushSnapshot(captureSnapshot());
+}
+
 export function updateBlock(instanceId: string, html: string, newInstance: TemplateInstance): void {
   pushSnapshot(captureSnapshot());
   const wrapper = document.querySelector<HTMLElement>(`[data-instance-id="${instanceId}"]`);
@@ -356,12 +388,18 @@ export function insertPageBreak(position: 'start' | 'end'): void {
 
 export { loadCustomTemplates };
 
+export function initPaper(paperEl: HTMLElement): void {
+  state.paper = paperEl;
+  loadCustomTemplates();
+  setupDropZone(state.paper, dropCallbacks);
+}
+
 export function initToolbarAndPaper(
   toolbarEl: HTMLElement,
   paperEl: HTMLElement,
 ): void {
   state.paper = paperEl;
   loadCustomTemplates();
-  initToolbar(toolbarEl, (tpl: Template) => openInsertModal(tpl, state.paper), paperEl);
+  initToolbar(toolbarEl);
   setupDropZone(state.paper, dropCallbacks);
 }

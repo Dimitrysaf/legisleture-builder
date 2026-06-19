@@ -1,6 +1,8 @@
-%% fek.cls — Κλάση LaTeX για Φύλλο της Εφημερίδας της Κυβερνήσεως (ΦΕΚ)
+%% fek.cls — Κλάση XeLaTeX για Φύλλο της Εφημερίδας της Κυβερνήσεως (ΦΕΚ)
 %% Συγγραφή: Legisleture Builder
-%% Έκδοση: 1.0 (2026)
+%% Έκδοση: 2.0 (2026) — απαιτεί XeLaTeX
+%%
+%% Μεταγλώττιση: xelatex nomos.tex
 %%
 %% Χρήση:
 %%   \documentclass[a4paper]{fek}
@@ -14,7 +16,7 @@
 %%   \end{document}
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{fek}[2026/06/18 v1.0 Φύλλο Εφημερίδας της Κυβερνήσεως]
+\ProvidesClass{fek}[2026/06/19 v2.0 Φύλλο Εφημερίδας της Κυβερνήσεως (XeLaTeX)]
 
 % ── Βάση: article, A4, 11pt ──────────────────────────────────────────
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
@@ -22,9 +24,10 @@
 \LoadClass[a4paper,11pt]{article}
 
 % ── Πακέτα ────────────────────────────────────────────────────────────
-\RequirePackage[T1]{fontenc}
-\RequirePackage[utf8]{inputenc}
-\RequirePackage[greek,english]{babel}
+\RequirePackage{fontspec}
+\RequirePackage{polyglossia}
+\setmainlanguage{greek}
+\setotherlanguage{english}
 \RequirePackage{geometry}
 \RequirePackage{graphicx}
 \RequirePackage{fancyhdr}
@@ -35,7 +38,6 @@
 \RequirePackage{booktabs}
 \RequirePackage{multicol}
 \RequirePackage{hyperref}
-\RequirePackage{lmodern}
 
 % ── Χρώματα ΦΕΚ ───────────────────────────────────────────────────────
 \definecolor{fekblue}{HTML}{003476}
@@ -53,11 +55,11 @@
   footskip=12mm,
 }
 
-% ── Γραμματοσειρά ΦΕΚ (GFS Didot αν διαθέσιμη, αλλιώς Palatino) ─────
-\IfFileExists{gfsdidot.sty}{%
-  \RequirePackage{gfsdidot}%
+% ── Γραμματοσειρά ΦΕΚ (GFS Didot — εγκατάσταση: tlmgr install gfsdidot) ──
+\IfFontExistsTF{GFS Didot}{%
+  \setmainfont{GFS Didot}%
 }{%
-  \RequirePackage{palatino}%
+  \setmainfont{Palatino Linotype}[Scale=MatchLowercase]%
 }
 
 % ── Metadata εντολές ──────────────────────────────────────────────────
@@ -167,5 +169,5 @@
   pdflang={el},
 }
 
-% ── Ελληνική διαστολή ─────────────────────────────────────────────────
-\selectlanguage{greek}
+% ── Γλώσσα (polyglossia ορίζει ελληνικά ως κύρια γλώσσα παραπάνω) ────
+% \selectlanguage{greek} — δεν χρειάζεται με polyglossia
