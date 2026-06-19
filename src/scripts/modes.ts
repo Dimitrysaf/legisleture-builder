@@ -2,10 +2,10 @@ import type { AppMode } from './state';
 import { state } from './state';
 import { generateLatex } from '../utils/latex';
 import { buildDocHtml } from '../utils/fileOps';
-import { loadFekMeta, hasFekMeta, buildFekHeaderHtml } from '../utils/fekMeta';
+import { EMPTY_META, hasFekMeta, buildFekHeaderHtml } from '../utils/fekMeta';
 
 export function buildPreviewPages(): HTMLElement {
-  const fekMeta = loadFekMeta();
+  const fekMeta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
   const PADDING_V = (hasFekMeta(fekMeta) ? 20 : 40) + 56;
 
   const probe = document.createElement('div');
@@ -97,7 +97,7 @@ export function refreshPreviewPane(): void {
     iframe.className = 'nb-preview-iframe';
     pane.appendChild(iframe);
   }
-  const meta = loadFekMeta();
+  const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
   iframe.srcdoc = buildDocHtml(state.paper, hasFekMeta(meta) ? meta : null);
   iframe.onload = () => {
     const body = (iframe as HTMLIFrameElement).contentDocument?.body;

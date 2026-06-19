@@ -1,4 +1,5 @@
 import type { Template, TemplateField, TemplateInstance } from '../templates/types';
+import { escHtml, escAttr } from '../utils/escape';
 import { icon, refreshIcons } from '../utils/icons';
 import { allFormats } from '../utils/numbering';
 import { openRefPickerModal } from './RefPickerModal';
@@ -57,8 +58,8 @@ export function openTemplateModal(
         ${template.id === 'table' ? `
           <div class="form-control" data-table-grid>
             <label class="label pb-1"><span class="label-text font-medium text-sm">Δεδομένα Πίνακα</span></label>
-            <input type="hidden" name="headers" value="${escHtml(existing?.data.headers ?? 'Στήλη 1 | Στήλη 2')}">
-            <input type="hidden" name="rows"    value="${escHtml(existing?.data.rows ?? ' | ')}">
+            <input type="hidden" name="headers" value="${escAttr(existing?.data.headers ?? 'Στήλη 1 | Στήλη 2')}">
+            <input type="hidden" name="rows"    value="${escAttr(existing?.data.rows ?? ' | ')}">
           </div>` : ''}
       </div>
 
@@ -193,13 +194,13 @@ function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?
       const hasAsset = !!existingAssetId;
       // If assetId exists but src is empty, show loading placeholder; initImageField resolves it
       const previewInner = hasImg
-        ? `<img src="${escHtml(value)}" alt="Προεπισκόπηση" class="nb-imgfield-preview-img">`
+        ? `<img src="${escAttr(value)}" alt="Προεπισκόπηση" class="nb-imgfield-preview-img">`
         : hasAsset
           ? `<span class="nb-imgfield-placeholder nb-imgfield-loading">Φόρτωση εικόνας…</span>`
           : `<span class="nb-imgfield-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Δεν έχει επιλεγεί εικόνα</span></span>`;
       return `<div class="form-control" data-field="${f.id}">
         ${label}
-        <div class="nb-imgfield" data-image-field="${f.id}" data-existing-asset="${escHtml(existingAssetId)}">
+        <div class="nb-imgfield" data-image-field="${f.id}" data-existing-asset="${escAttr(existingAssetId)}">
           <div class="nb-imgfield-preview">${previewInner}</div>
           <div class="nb-imgfield-actions">
             <label class="btn btn-sm btn-outline gap-1.5 cursor-pointer">
@@ -209,8 +210,8 @@ function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?
             </label>
             <button type="button" class="btn btn-sm btn-ghost text-error" data-imgclear="${f.id}" ${(hasImg || hasAsset) ? '' : 'hidden'}>Αφαίρεση</button>
           </div>
-          <input type="hidden" name="${f.id}" value="${escHtml(value)}">
-          <input type="hidden" name="assetId" value="${escHtml(existingAssetId)}">
+          <input type="hidden" name="${f.id}" value="${escAttr(value)}">
+          <input type="hidden" name="assetId" value="${escAttr(existingAssetId)}">
         </div>
         ${hint}
       </div>`;
@@ -221,7 +222,7 @@ function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?
         ${label}
         <select class="select select-bordered w-full" name="${f.id}" ${f.required ? 'required' : ''}>
           ${(f.options ?? []).map(o =>
-            `<option value="${escHtml(o.value)}" ${value === o.value ? 'selected' : ''}>${escHtml(o.label)}</option>`
+            `<option value="${escAttr(o.value)}" ${value === o.value ? 'selected' : ''}>${escHtml(o.label)}</option>`
           ).join('')}
         </select>
         ${hint}
@@ -234,7 +235,7 @@ function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?
           type="text"
           class="input input-bordered w-full"
           name="${f.id}"
-          value="${escHtml(value)}"
+          value="${escAttr(value)}"
           placeholder="${f.placeholder ?? ''}"
           ${f.required ? 'required' : ''}
         />
@@ -399,6 +400,3 @@ function validateData(
   return true;
 }
 
-function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}

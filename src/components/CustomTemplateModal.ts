@@ -1,4 +1,5 @@
 import type { Template, TemplateField, TemplateCategory, FieldType } from '../templates/types';
+import { escAttr } from '../utils/escape';
 import { saveCustomTemplate, deleteCustomTemplate } from '../templates/registry';
 import { icon, refreshIcons, ICON_OPTIONS } from '../utils/icons';
 
@@ -53,7 +54,7 @@ function render(): void {
       <div class="form-control mb-4">
         <label class="label pb-1"><span class="label-text font-medium text-sm">Όνομα template <span class="text-error">*</span></span></label>
         <input id="nb-ctm-name" type="text" class="input input-bordered w-full"
-          value="${escHtml(e?.name ?? '')}" placeholder="Π.χ. Ορισμός" />
+          value="${escAttr(e?.name ?? '')}" placeholder="Π.χ. Ορισμός" />
       </div>
 
       <!-- Icon picker -->
@@ -81,7 +82,7 @@ function render(): void {
         <div class="form-control">
           <label class="label pb-1"><span class="label-text font-medium text-sm">Περιγραφή (προαιρετικό)</span></label>
           <input id="nb-ctm-desc" type="text" class="input input-bordered w-full"
-            value="${escHtml(e?.description ?? '')}" placeholder="Σύντομη περιγραφή..." />
+            value="${escAttr(e?.description ?? '')}" placeholder="Σύντομη περιγραφή..." />
         </div>
       </div>
 
@@ -108,7 +109,7 @@ function render(): void {
       <textarea id="nb-ctm-template-str" rows="5"
         class="textarea textarea-bordered w-full font-mono text-xs leading-relaxed mb-2"
         placeholder="<p>{{content}}</p>"
-      >${escHtml(storedStr)}</textarea>
+      >${escAttr(storedStr)}</textarea>
 
       <!-- Preview -->
       <button type="button" id="nb-ctm-preview-btn" class="btn btn-ghost btn-xs gap-1.5 mb-1">
@@ -144,7 +145,7 @@ function renderFieldRow(f: DraftField, i: number): string {
       <div class="form-control flex-1">
         ${i === 0 ? '<label class="label pb-1"><span class="label-text text-xs">Label</span></label>' : ''}
         <input type="text" class="input input-bordered input-sm w-full"
-          data-field-label="${i}" value="${escHtml(f.label)}" placeholder="Π.χ. Κείμενο" />
+          data-field-label="${i}" value="${escAttr(f.label)}" placeholder="Π.χ. Κείμενο" />
       </div>
       <div class="form-control w-32">
         ${i === 0 ? '<label class="label pb-1"><span class="label-text text-xs">Τύπος</span></label>' : ''}
@@ -321,6 +322,3 @@ function slugify(s: string): string {
     || 'field';
 }
 
-function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}

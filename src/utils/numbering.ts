@@ -71,8 +71,9 @@ export function countBlocksOfType(templateId: string, container: HTMLElement): n
 
 // Display prefix used in .nb-struct-role for each auto-numbered structural type.
 const STRUCT_PREFIX: Record<string, string> = {
-  article:      'Άρθρο',
-  transitional: 'Μεταβατική Διάταξη',
+  article:       'Άρθρο',
+  'final-article': 'Άρθρο',
+  transitional:  'Μεταβατική Διάταξη',
 };
 
 /** Returns the direct container zone element for `key` within a block wrapper. */
@@ -178,6 +179,11 @@ function walkStructure(
         applyNumber(el, inst, String(counters.article));
         const z = zoneEl(el, 'body');
         if (z) walkParagraphZone(z, instances);
+        break;
+      }
+      case 'final-article': {
+        counters.article++;
+        applyNumber(el, inst, String(counters.article));
         break;
       }
       case 'transitional': {

@@ -11,7 +11,6 @@ import {
   serializeDocument, isSaveFile,
   type SaveFile, type SavedBlock,
 } from '../utils/fileOps';
-import { loadFekMeta } from '../utils/fekMeta';
 import { newProject, type Project } from '../types/project';
 import { pushSnapshot, undoPop, redoPop, pushRedo, pushUndoOnly, clearHistory } from '../utils/history';
 import { state } from './state';
@@ -338,7 +337,6 @@ export function loadFromSaveFile(saveFile: SaveFile): void {
     project.createdAt = saveFile.savedAt;
     project.modifiedAt = saveFile.savedAt;
   }
-  project.fekMeta = loadFekMeta();
   state.currentProject = project;
   deserializeBlocks(saveFile.blocks, state.paper);
   renumberDocument(state.paper, state.instances);

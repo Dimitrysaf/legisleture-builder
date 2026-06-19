@@ -1,4 +1,5 @@
 import { state } from '../state';
+import { escHtml } from '../../utils/escape';
 import { checkDocument } from '../../utils/completeness';
 
 const SEVERITY_ICON: Record<string, string> = {
@@ -71,6 +72,3 @@ export function initCompletenessModal(): void {
   });
 }
 
-function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}

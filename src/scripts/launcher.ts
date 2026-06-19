@@ -5,6 +5,7 @@ import {
   renameProjectAsync,
   saveProjectToWorkspace,
 } from '../utils/workspace';
+import { escHtml } from '../utils/escape';
 import { newProject } from '../types/project';
 import { isProjectFile, isSaveFile } from '../utils/fileOps';
 import type { ProjectStub } from '../utils/workspace';
@@ -175,9 +176,6 @@ function handleImport(file: File): void {
   });
 }
 
-function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 // ── Bootstrap ─────────────────────────────────────────────────────
 

@@ -2,15 +2,9 @@ import { getAllTemplates } from '../templates/registry';
 import type { Template } from '../templates/types';
 import { icon, refreshIcons } from '../utils/icons';
 import { canInsertInContainer } from '../utils/nesting';
+import { TEMPLATE_CATEGORIES as CATEGORIES } from '../templates/categories';
 
 type OnSelectFn = (template: Template) => void;
-
-const CATEGORIES = [
-  { id: 'structure', label: 'Δομή' },
-  { id: 'content',   label: 'Περιεχόμενο' },
-  { id: 'reference', label: 'Παραπομπές' },
-  { id: 'custom',    label: 'Custom' },
-] as const;
 
 let _picker: HTMLDialogElement | null = null;
 

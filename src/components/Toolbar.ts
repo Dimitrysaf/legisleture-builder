@@ -2,13 +2,7 @@ import { getAllTemplates } from '../templates/registry';
 import type { Template } from '../templates/types';
 import { icon, refreshIcons } from '../utils/icons';
 import { canInsertInContainer } from '../utils/nesting';
-
-const CATEGORIES = [
-  { id: 'structure', label: 'Δομή' },
-  { id: 'content',   label: 'Περιεχόμενο' },
-  { id: 'reference', label: 'Παραπομπές' },
-  { id: 'custom',    label: 'Custom' },
-] as const;
+import { TEMPLATE_CATEGORIES as CATEGORIES } from '../templates/categories';
 
 type OnSelectFn = (template: Template) => void;
 

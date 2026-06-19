@@ -169,7 +169,7 @@ function parseChunk(chunk: string): SavedBlock | null {
     const ref     = unesc(first.replace(/\s*ως εξής:\s*$/, '').trim());
     const quoteM  = chunk.match(/\\begin\{quote\}\s*([\s\S]*?)\s*\\end\{quote\}/);
     const newText = quoteM ? unesc(quoteM[1].replace(/^«|»$/g, '').trim()) : '';
-    return mkBlock('amendment', { article_ref: ref, action: 'αντικαθίσταται', content: newText });
+    return mkBlock('amendment', { article_ref: ref, action: 'replace', content: newText });
   }
 
   // \textit{single-line} → law reference

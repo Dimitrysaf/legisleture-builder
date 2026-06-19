@@ -3,7 +3,7 @@ import { showSaveStatus } from './toast';
 import { loadFromSaveFile } from './blocks';
 import { serializeDocument, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile } from '../utils/fileOps';
 import { generateLatex } from '../utils/latex';
-import { loadFekMeta, hasFekMeta } from '../utils/fekMeta';
+import { EMPTY_META, hasFekMeta } from '../utils/fekMeta';
 import { parseLaTeX } from '../utils/latexImport';
 import { exportAkomaNtoso } from '../utils/export/akoma';
 
@@ -17,7 +17,7 @@ function exportHtmlFile(): void {
 }
 
 async function exportFekHtmlFile(): Promise<void> {
-  const meta = loadFekMeta();
+  const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
   const html = await exportFekHtml(state.paper, meta);
   downloadBlob(html, 'nomos-fek.html', 'text/html');
 }
@@ -32,7 +32,7 @@ function exportTxtFile(): void {
 
 function exportAkomaFile(): void {
   const save = serializeDocument(state.paper, state.instances);
-  const meta = loadFekMeta();
+  const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
   const xml  = exportAkomaNtoso(save.blocks, {
     number:    meta.number,
     date:      meta.date,
@@ -46,7 +46,7 @@ function exportAkomaFile(): void {
 }
 
 function printDocument(): void {
-  const meta = loadFekMeta();
+  const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
   const html = buildDocHtml(state.paper, hasFekMeta(meta) ? meta : null);
   const popup = window.open('', '_blank');
   if (!popup) {

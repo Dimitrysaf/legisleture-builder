@@ -8,6 +8,7 @@
  */
 
 import { state } from '../state';
+import { escHtml, escAttr } from '../../utils/escape';
 import { showSaveStatus } from '../toast';
 import { serializeDocument, downloadBlob } from '../../utils/fileOps';
 import { loadFekMeta } from '../../utils/fekMeta';
@@ -34,7 +35,7 @@ async function renderIndexList(container: HTMLElement): Promise<void> {
         ${idx.subject ? `<span class="nb-lidx-subject">${escHtml(idx.subject)}</span>` : ''}
         <span class="nb-lidx-meta">${idx.articles.length} άρθρα${idx.fekRef ? ' · ' + escHtml(idx.fekRef) : ''}${idx.date ? ' · ' + formatDate(idx.date) : ''}</span>
       </div>
-      <button type="button" class="btn btn-xs btn-ghost text-error nb-lidx-del" data-idx-del="${escHtml(idx.id)}" title="Διαγραφή">✕</button>
+      <button type="button" class="btn btn-xs btn-ghost text-error nb-lidx-del" data-idx-del="${escAttr(idx.id)}" title="Διαγραφή">✕</button>
     </div>`).join('');
 
   container.querySelectorAll<HTMLButtonElement>('.nb-lidx-del').forEach(btn => {
@@ -133,9 +134,6 @@ export function initLawIndexModal(): void {
   }
 }
 
-function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 // ── Public API: browse known law IDs ─────────────────────────────────
 

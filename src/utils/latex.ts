@@ -104,10 +104,23 @@ function wrapperToLatex(wrapper: HTMLElement, instances: Map<string, TemplateIns
       return `\\noindent\\textbf{\\textit{${term}:}} ${def}`;
     }
     case 'amendment': {
-      const ref = esc(d.article_ref ?? '');
-      const action = esc(d.action ?? 'αντικαθίσταται');
-      const body = richToLatex(d.content ?? '');
-      return `${ref} ${action} ως εξής:\n\n\\begin{quote}\n«${body}»\n\\end{quote}`;
+      const lawId  = d.targetLawId?.trim() ?? '';
+      const path   = d.targetPath?.trim() ?? '';
+      const legacy = d.article_ref?.trim() ?? '';
+      const ref    = esc((path && lawId) ? `${path} του ${lawId}` : (legacy || `${path} ${lawId}`.trim()));
+      const action = d.action ?? 'replace';
+      const body   = richToLatex(d.content ?? '');
+
+      let intro: string;
+      switch (action) {
+        case 'repeal':   intro = `Το ${ref} καταργείται.`; break;
+        case 'insert':   intro = `Μετά το ${ref} προστίθεται νέα διάταξη ως εξής:`; break;
+        case 'amend':    intro = `Το ${ref} τροποποιείται ως εξής:`; break;
+        case 'renumber': intro = `Το ${ref} αναριθμείται ως εξής:`; break;
+        default:         intro = `Το ${ref} αντικαθίσταται ως εξής:`; break;
+      }
+      if (action === 'repeal' || !body) return intro;
+      return `${intro}\n\n\\begin{quote}\n«${body}»\n\\end{quote}`;
     }
     case 'annex': {
       const titlePart = d.title?.trim() ? ` -- ${d.title.trim()}` : '';

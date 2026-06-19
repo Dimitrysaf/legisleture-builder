@@ -1,4 +1,5 @@
 import { state } from '../state';
+import { escHtml } from '../../utils/escape';
 import { showSaveStatus } from '../toast';
 import { listVersions, loadVersion, deleteVersion, saveVersion } from '../../utils/versions';
 import { loadFromProject } from '../blocks';
@@ -64,9 +65,6 @@ async function renderVersionList(modal: HTMLDialogElement): Promise<void> {
   });
 }
 
-function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 export function initVersionsModal(): void {
   const btn = document.getElementById('nb-versions-btn');

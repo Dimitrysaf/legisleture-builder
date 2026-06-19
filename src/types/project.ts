@@ -35,16 +35,6 @@ export interface ProjectFile {
   project: Project;
 }
 
-export function isProjectFile(obj: unknown): obj is ProjectFile {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    (obj as ProjectFile).version === 2 &&
-    (obj as ProjectFile).app === 'legisleture-builder' &&
-    typeof (obj as ProjectFile).project === 'object' &&
-    (obj as ProjectFile).project !== null
-  );
-}
 
 export function generateProjectId(): string {
   const arr = new Uint8Array(6);

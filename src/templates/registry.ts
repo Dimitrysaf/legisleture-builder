@@ -1,4 +1,5 @@
 import type { Template, StoredCustomTemplate } from './types';
+import { escHtml, escAttr } from '../utils/escape';
 import { partTemplate } from './built-in/part';
 import { chapterTemplate } from './built-in/chapter';
 import { sectionTemplate } from './built-in/section';
@@ -57,13 +58,6 @@ export function getAllTemplates(): Template[] {
   return Array.from(registry.values());
 }
 
-function escAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
 
 function makeRenderFn(templateStr: string, templateId: string): Template['render'] {
   return (data) => {
