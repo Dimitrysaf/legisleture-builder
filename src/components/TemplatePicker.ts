@@ -1,6 +1,7 @@
 import { getAllTemplates } from '../templates/registry';
 import type { Template } from '../templates/types';
 import { icon, refreshIcons } from '../utils/icons';
+import { canInsertInContainer } from '../utils/nesting';
 
 type OnSelectFn = (template: Template) => void;
 
@@ -13,7 +14,7 @@ const CATEGORIES = [
 
 let _picker: HTMLDialogElement | null = null;
 
-export function openTemplatePicker(onSelect: OnSelectFn): void {
+export function openTemplatePicker(onSelect: OnSelectFn, container?: HTMLElement): void {
   if (!_picker) {
     _picker = document.createElement('dialog');
     _picker.id = 'nb-template-picker';
@@ -21,7 +22,10 @@ export function openTemplatePicker(onSelect: OnSelectFn): void {
     document.body.appendChild(_picker);
   }
 
-  const all = getAllTemplates();
+  const allTemplates = getAllTemplates();
+  const all = container
+    ? allTemplates.filter(t => canInsertInContainer(t.id, container))
+    : allTemplates;
 
   _picker.innerHTML = `
     <div class="modal-box w-11/12 max-w-lg font-sans">

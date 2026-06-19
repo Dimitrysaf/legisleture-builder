@@ -1,11 +1,15 @@
 import { state } from './state';
-import { initToolbarAndPaper, undo, redo, insertPageBreak } from './blocks';
+import { initToolbarAndPaper, undo, redo, insertPageBreak, loadFromProject } from './blocks';
 import { applyModes, initModeTabs, refreshPreviewPane } from './modes';
 import { initFileMenu } from './fileMenu';
 import { initFekMetaModal } from './modals/fekMeta';
 import { initRestoreBanner } from './modals/restore';
 import { initSlotsModal } from './modals/slots';
 import { initSettingsModal } from './modals/settings';
+import { initVersionsModal } from './modals/versions';
+import { initCompletenessModal } from './modals/completeness';
+import { initLawIndexModal } from './modals/lawIndexModal';
+import { loadProjectAsync } from '../utils/workspace';
 
 // ── Bootstrap ─────────────────────────────────────────────────────
 
@@ -13,6 +17,19 @@ const paperEl  = document.getElementById('nb-paper')    as HTMLElement;
 const toolbarEl = document.getElementById('nb-toolbar')  as HTMLElement;
 
 initToolbarAndPaper(toolbarEl, paperEl);
+
+// Load project specified in URL (?id=proj_xxx), or fall through to restore banner
+const urlId = new URLSearchParams(location.search).get('id');
+if (urlId) {
+  loadProjectAsync(urlId).then(pf => {
+    if (pf) {
+      loadFromProject(pf.project);
+      document.getElementById('nb-restore-banner')?.setAttribute('hidden', '');
+      // Update page title with project name
+      if (pf.project.name) document.title = `${pf.project.name} — Legisleture Builder`;
+    }
+  });
+}
 
 // ── Keyboard shortcuts ────────────────────────────────────────────
 
@@ -89,6 +106,9 @@ initRestoreBanner();
 initFekMetaModal();
 initSlotsModal();
 initSettingsModal();
+initVersionsModal();
+initCompletenessModal();
+initLawIndexModal();
 initModeTabs();
 applyModes(['edit']);
 

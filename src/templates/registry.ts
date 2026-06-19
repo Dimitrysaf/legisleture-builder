@@ -57,13 +57,24 @@ export function getAllTemplates(): Template[] {
   return Array.from(registry.values());
 }
 
+function escAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function makeRenderFn(templateStr: string, templateId: string): Template['render'] {
   return (data) => {
     let html = templateStr;
     for (const [key, value] of Object.entries(data)) {
-      html = html.replaceAll(`{{${key}}}`, value);
+      // Safe replacement: escape the value so it cannot inject HTML/script
+      html = html.replaceAll(`{{${key}}}`, escHtml(value));
+      // Also handle attribute-context placeholders wrapped in quotes
+      html = html.replaceAll(`"{{${key}}}"`, `"${escAttr(value)}"`);
     }
-    return `<div class="nb-block nb-block--custom" data-template="${templateId}">${html}</div>`;
+    return `<div class="nb-block nb-block--custom" data-template="${escAttr(templateId)}">${html}</div>`;
   };
 }
 

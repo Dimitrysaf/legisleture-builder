@@ -1,6 +1,23 @@
 import type { FekMeta } from '../utils/fekMeta';
 import type { SavedBlock } from '../utils/fileOps';
 
+export interface Asset {
+  id: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  hash: string;
+  createdAt: string;
+  data: string; // base64 data URL — Phase 1: μεταφέρεται σε IndexedDB ως binary blob
+}
+
+export interface ProjectVersion {
+  id: string;
+  savedAt: string;
+  comment?: string;
+  blocks: SavedBlock[];
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -8,6 +25,8 @@ export interface Project {
   createdAt: string;
   modifiedAt: string;
   blocks: SavedBlock[];
+  assets: Asset[];
+  versions: ProjectVersion[];
 }
 
 export interface ProjectFile {
@@ -48,5 +67,7 @@ export function newProject(name = ''): Project {
     createdAt: now,
     modifiedAt: now,
     blocks: [],
+    assets: [],
+    versions: [],
   };
 }

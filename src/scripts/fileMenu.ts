@@ -5,6 +5,7 @@ import { serializeDocument, exportHtml, exportFekHtml, buildDocHtml, exportTxt, 
 import { generateLatex } from '../utils/latex';
 import { loadFekMeta, hasFekMeta } from '../utils/fekMeta';
 import { parseLaTeX } from '../utils/latexImport';
+import { exportAkomaNtoso } from '../utils/export/akoma';
 
 function saveAsJson(): void {
   const data = serializeDocument(state.paper, state.instances);
@@ -27,6 +28,21 @@ function exportLatexFile(): void {
 
 function exportTxtFile(): void {
   downloadBlob(exportTxt(state.paper), 'nomos.txt', 'text/plain');
+}
+
+function exportAkomaFile(): void {
+  const save = serializeDocument(state.paper, state.instances);
+  const meta = loadFekMeta();
+  const xml  = exportAkomaNtoso(save.blocks, {
+    number:    meta.number,
+    date:      meta.date,
+    subject:   meta.subject,
+    fekSeries: meta.fekSeries,
+    fekNumber: meta.fekNumber,
+    fekDate:   meta.fekDate,
+  });
+  downloadBlob(xml, 'nomos-akoma.xml', 'application/xml');
+  showSaveStatus('Εξαγωγή Akoma Ntoso XML');
 }
 
 function printDocument(): void {
@@ -133,6 +149,7 @@ export function initFileMenu(): void {
         case 'export-html':     exportHtmlFile(); break;
         case 'export-fek-html': exportFekHtmlFile(); break;
         case 'export-latex':    exportLatexFile(); break;
+        case 'export-akoma':    exportAkomaFile(); break;
         case 'export-txt':      exportTxtFile(); break;
         case 'export-pdf':      printDocument(); break;
       }

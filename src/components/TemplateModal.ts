@@ -3,6 +3,9 @@ import { icon, refreshIcons } from '../utils/icons';
 import { allFormats } from '../utils/numbering';
 import { openRefPickerModal } from './RefPickerModal';
 import { sanitizeHtml } from '../utils/sanitize';
+import { storeImageAsset, resolveAssetUrl } from '../utils/assets';
+import { state } from '../scripts/state';
+import { initTableGridEditor } from './TableGridEditor';
 
 type OnConfirmFn = (html: string, instance: TemplateInstance) => void;
 
@@ -42,13 +45,21 @@ export function openTemplateModal(
       <div id="nb-tm-fields" class="space-y-4">
         ${template.fields
           .filter(f => f.type !== 'container')
+          .filter(f => template.id === 'table' && (f.id === 'headers' || f.id === 'rows') ? false : true)
           .map(f => renderField(
             f,
             existing?.data[f.id] ?? f.defaultValue ?? '',
             (!existing && f.id === 'number' && opts?.nextN != null) ? opts.nextN : undefined,
             (!existing && f.id === 'number') ? opts?.nextLabel : undefined,
+            existing?.data,
           ))
           .join('')}
+        ${template.id === 'table' ? `
+          <div class="form-control" data-table-grid>
+            <label class="label pb-1"><span class="label-text font-medium text-sm">Δεδομένα Πίνακα</span></label>
+            <input type="hidden" name="headers" value="${escHtml(existing?.data.headers ?? 'Στήλη 1 | Στήλη 2')}">
+            <input type="hidden" name="rows"    value="${escHtml(existing?.data.rows ?? ' | ')}">
+          </div>` : ''}
       </div>
 
       <div class="modal-action mt-6">
@@ -63,6 +74,7 @@ export function openTemplateModal(
 
   _modal.querySelectorAll<HTMLElement>('[data-rich]').forEach(initRichEditor);
   _modal.querySelectorAll<HTMLElement>('[data-image-field]').forEach(initImageField);
+  _modal.querySelectorAll<HTMLElement>('[data-table-grid]').forEach(initTableGridEditor);
 
   _modal.querySelectorAll<HTMLButtonElement>('.nb-numfmt-chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -94,7 +106,7 @@ export function openTemplateModal(
 
 // ── Field rendering ───────────────────────────────────────────────
 
-function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?: string): string {
+function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?: string, allData?: Record<string, string>): string {
   const label = `<label class="label pb-1"><span class="label-text font-medium text-sm">${f.label}${f.required ? ' <span class="text-error">*</span>' : ''}</span></label>`;
   const hint = f.hint ? `<div class="label pt-0.5"><span class="label-text-alt text-base-content/50">${f.hint}</span></div>` : '';
 
@@ -177,12 +189,17 @@ function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?
 
     case 'image': {
       const hasImg = value.startsWith('data:') || value.startsWith('http');
+      const existingAssetId = allData?.assetId ?? '';
+      const hasAsset = !!existingAssetId;
+      // If assetId exists but src is empty, show loading placeholder; initImageField resolves it
       const previewInner = hasImg
         ? `<img src="${escHtml(value)}" alt="Προεπισκόπηση" class="nb-imgfield-preview-img">`
-        : `<span class="nb-imgfield-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Δεν έχει επιλεγεί εικόνα</span></span>`;
+        : hasAsset
+          ? `<span class="nb-imgfield-placeholder nb-imgfield-loading">Φόρτωση εικόνας…</span>`
+          : `<span class="nb-imgfield-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Δεν έχει επιλεγεί εικόνα</span></span>`;
       return `<div class="form-control" data-field="${f.id}">
         ${label}
-        <div class="nb-imgfield" data-image-field="${f.id}">
+        <div class="nb-imgfield" data-image-field="${f.id}" data-existing-asset="${escHtml(existingAssetId)}">
           <div class="nb-imgfield-preview">${previewInner}</div>
           <div class="nb-imgfield-actions">
             <label class="btn btn-sm btn-outline gap-1.5 cursor-pointer">
@@ -190,9 +207,10 @@ function renderField(f: TemplateField, value: string, nextN?: number, nextLabel?
               Επιλογή εικόνας
               <input type="file" accept="image/*" class="sr-only" data-imgfile="${f.id}">
             </label>
-            <button type="button" class="btn btn-sm btn-ghost text-error" data-imgclear="${f.id}" ${hasImg ? '' : 'hidden'}>Αφαίρεση</button>
+            <button type="button" class="btn btn-sm btn-ghost text-error" data-imgclear="${f.id}" ${(hasImg || hasAsset) ? '' : 'hidden'}>Αφαίρεση</button>
           </div>
           <input type="hidden" name="${f.id}" value="${escHtml(value)}">
+          <input type="hidden" name="assetId" value="${escHtml(existingAssetId)}">
         </div>
         ${hint}
       </div>`;
@@ -274,23 +292,48 @@ function initRichEditor(editor: HTMLElement): void {
 // ── Image field ───────────────────────────────────────────────────
 
 function initImageField(container: HTMLElement): void {
-  const fieldId   = container.dataset.imageField!;
-  const fileInput = container.querySelector<HTMLInputElement>(`[data-imgfile="${fieldId}"]`);
-  const hidden    = container.querySelector<HTMLInputElement>(`[name="${fieldId}"]`);
-  const preview   = container.querySelector<HTMLElement>('.nb-imgfield-preview');
-  const clearBtn  = container.querySelector<HTMLButtonElement>(`[data-imgclear="${fieldId}"]`);
+  const fieldId       = container.dataset.imageField!;
+  const fileInput     = container.querySelector<HTMLInputElement>(`[data-imgfile="${fieldId}"]`);
+  const hiddenSrc     = container.querySelector<HTMLInputElement>(`[name="${fieldId}"]`);
+  const hiddenAssetId = container.querySelector<HTMLInputElement>('[name="assetId"]');
+  const preview       = container.querySelector<HTMLElement>('.nb-imgfield-preview');
+  const clearBtn      = container.querySelector<HTMLButtonElement>(`[data-imgclear="${fieldId}"]`);
 
-  function setImage(dataUrl: string): void {
-    if (hidden)  hidden.value = dataUrl;
+  const PLACEHOLDER = `<span class="nb-imgfield-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Δεν έχει επιλεγεί εικόνα</span></span>`;
+
+  function showPreview(dataUrl: string): void {
     if (preview) preview.innerHTML = `<img src="${dataUrl}" alt="Προεπισκόπηση" class="nb-imgfield-preview-img">`;
     clearBtn?.removeAttribute('hidden');
   }
 
+  async function setImage(dataUrl: string, filename = 'image'): Promise<void> {
+    if (hiddenSrc) hiddenSrc.value = dataUrl;
+    showPreview(dataUrl);
+    // Save to IndexedDB as an asset
+    const projectId = state.currentProject?.id ?? 'default';
+    try {
+      const assetId = await storeImageAsset(dataUrl, projectId, filename);
+      if (hiddenAssetId) hiddenAssetId.value = assetId;
+    } catch { /* non-fatal — src fallback still works */ }
+  }
+
   function clearImage(): void {
-    if (hidden)   hidden.value = '';
-    if (fileInput) fileInput.value = '';
-    if (preview)  preview.innerHTML = `<span class="nb-imgfield-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Δεν έχει επιλεγεί εικόνα</span></span>`;
+    if (hiddenSrc)     hiddenSrc.value = '';
+    if (hiddenAssetId) hiddenAssetId.value = '';
+    if (fileInput)     fileInput.value = '';
+    if (preview)       preview.innerHTML = PLACEHOLDER;
     clearBtn?.setAttribute('hidden', '');
+  }
+
+  // Async-resolve preview for existing blocks with assetId but no src
+  const existingAsset = container.dataset.existingAsset;
+  if (existingAsset && !hiddenSrc?.value) {
+    resolveAssetUrl(existingAsset).then(url => {
+      if (url) {
+        if (hiddenSrc) hiddenSrc.value = url;
+        showPreview(url);
+      }
+    });
   }
 
   fileInput?.addEventListener('change', () => {
@@ -299,12 +342,12 @@ function initImageField(container: HTMLElement): void {
     const reader = new FileReader();
     reader.onload = (e) => {
       const url = e.target?.result as string;
-      if (url) setImage(url);
+      if (url) setImage(url, file.name);
     };
     reader.readAsDataURL(file);
   });
 
-  // Drag-and-drop onto the preview area
+  // Drag-and-drop
   preview?.addEventListener('dragover', (e) => { e.preventDefault(); preview.classList.add('nb-imgfield-preview--drag'); });
   preview?.addEventListener('dragleave', ()   => { preview.classList.remove('nb-imgfield-preview--drag'); });
   preview?.addEventListener('drop', (e) => {
@@ -313,7 +356,7 @@ function initImageField(container: HTMLElement): void {
     const file = e.dataTransfer?.files[0];
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
-    reader.onload = (ev) => { const url = ev.target?.result as string; if (url) setImage(url); };
+    reader.onload = (ev) => { const url = ev.target?.result as string; if (url) setImage(url, file.name); };
     reader.readAsDataURL(file);
   });
 

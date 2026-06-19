@@ -4,6 +4,9 @@ import { isSaveFile, isProjectFile } from '../../utils/fileOps';
 import { AUTOSAVE_KEY } from '../autosave';
 
 export function initRestoreBanner(): void {
+  // Suppress when a specific project was requested via URL — workspace handles it
+  if (new URLSearchParams(location.search).get('id')) return;
+
   const banner = document.getElementById('nb-restore-banner');
   if (!banner) return;
 

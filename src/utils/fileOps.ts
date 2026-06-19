@@ -78,7 +78,13 @@ function serializeContainer(
       }
     }
 
-    blocks.push({ id, templateId: inst.templateId, data: { ...inst.data }, zones });
+    const data = { ...inst.data };
+    // Strip inline base64 src when a separate assetId reference exists — keeps JSON small
+    if (inst.templateId === 'image-block' && data.assetId && data.src?.startsWith('data:')) {
+      data.src = '';
+    }
+
+    blocks.push({ id, templateId: inst.templateId, data, zones });
   }
 
   return blocks;

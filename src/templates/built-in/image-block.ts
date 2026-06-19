@@ -66,6 +66,7 @@ export const imageBlockTemplate: Template = {
   ],
   render(data) {
     const src       = data.src ?? '';
+    const assetId   = data.assetId ?? '';
     const alt       = data.alt?.trim() || 'Εικόνα';
     const figNum    = data.figure_num?.trim();
     const caption   = data.caption?.trim();
@@ -83,9 +84,14 @@ export const imageBlockTemplate: Template = {
     };
     const justify = justifyMap[alignment] ?? 'flex-start';
 
+    // Use assetId reference when available (src resolved async in browser);
+    // fall back to inline src for legacy blocks and export contexts.
+    const imgSrc = src || '';
+    const assetAttr = assetId ? ` data-asset-id="${assetId}"` : '';
+
     return `<div class="nb-block nb-block--image" data-template="image-block">
   <figure class="nb-figure" style="align-items:${justify}">
-    <img src="${src}" alt="${alt}" class="nb-figure-img" style="width:${width}%">${captionHtml}
+    <img src="${imgSrc}"${assetAttr} alt="${alt}" class="nb-figure-img" style="width:${width}%">${captionHtml}
   </figure>
 </div>`;
   },

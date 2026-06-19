@@ -1,5 +1,6 @@
 import { loadCustomTemplates, getTemplate } from '../templates/registry';
 import type { Template, TemplateInstance } from '../templates/types';
+import { canInsertInContainer, getContainerContext } from '../utils/nesting';
 import { initToolbar } from '../components/Toolbar';
 import { openTemplateModal } from '../components/TemplateModal';
 import { openTemplatePicker } from '../components/TemplatePicker';
@@ -18,6 +19,7 @@ import { showSaveStatus } from './toast';
 import { triggerAutoSave, markDocChanged } from './autosave';
 import { generateTocBody } from './toc';
 import { setupDrag, setupDropZone, type DropCallbacks } from './drag';
+import { resolveAssetsInContainer } from '../utils/assets';
 
 const NUMBERED_TEMPLATES = new Set(['part', 'chapter', 'section', 'article', 'paragraph']);
 
@@ -63,6 +65,13 @@ export function initContainerZone(zone: HTMLElement): void {
 }
 
 export function openInsertModal(tpl: Template, targetContainer: HTMLElement, position: 'start' | 'end' = 'end'): void {
+  if (!canInsertInContainer(tpl.id, targetContainer)) {
+    const ctx = getContainerContext(targetContainer);
+    const where = ctx === 'root' ? 'την αρχή του εγγράφου' : `τη ζώνη «${ctx}»`;
+    showSaveStatus(`«${tpl.name}» δεν επιτρέπεται σε ${where}`);
+    return;
+  }
+
   if (tpl.id === 'toc') {
     const body = generateTocBody();
     const instance: TemplateInstance = {
@@ -247,7 +256,7 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
       const zone = wrapper.querySelector<HTMLElement>('.nb-container-zone')!;
       openTemplatePicker((tpl) => {
         openInsertModal(tpl, zone);
-      });
+      }, zone);
     });
   }
 
@@ -317,6 +326,8 @@ export function loadFromProject(project: Project): void {
   deserializeBlocks(project.blocks, state.paper);
   renumberDocument(state.paper, state.instances);
   refreshIcons();
+  // Async: resolve asset IDs to data URLs for image blocks
+  resolveAssetsInContainer(state.paper).catch(() => { /* non-fatal */ });
 }
 
 export function loadFromSaveFile(saveFile: SaveFile): void {
@@ -353,6 +364,6 @@ export function initToolbarAndPaper(
 ): void {
   state.paper = paperEl;
   loadCustomTemplates();
-  initToolbar(toolbarEl, (tpl: Template) => openInsertModal(tpl, state.paper));
+  initToolbar(toolbarEl, (tpl: Template) => openInsertModal(tpl, state.paper), paperEl);
   setupDropZone(state.paper, dropCallbacks);
 }
