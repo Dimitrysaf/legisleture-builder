@@ -1106,7 +1106,7 @@ body:not(:is(:not([data-nb-mode]), [data-nb-mode="edit"])) .nb-page-add-btn {
 .nb-file-menu {
   position: absolute;
   top: calc(100% + 4px);
-  right: 0;
+  left: 0;
   min-width: 230px;
   background: #ffffff;
   border: 1px solid #d1d5db;
