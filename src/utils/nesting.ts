@@ -6,7 +6,7 @@
  * Templates not listed here have no restriction (custom / content blocks).
  */
 
-const ARTICLE_BODY   = ['article:body', 'transitional:body'] as const;
+const ARTICLE_BODY   = ['article:body', 'transitional:body', 'final-article:body', 'annex:body'] as const;
 const STRUCT_PARENTS = ['root', 'part:sections', 'section:chapters', 'chapter:articles'] as const;
 const ANYWHERE       = ['root', ...ARTICLE_BODY] as const;
 
@@ -22,6 +22,7 @@ const NESTING_RULES: Record<string, readonly string[]> = {
   preamble:      ['root'],
   closing:       ['root'],
   toc:           ['root'],
+  'fek-header':  ['root'],
 
   // ── Paragraph-level blocks ──────────────────────────────────────
   paragraph:     [...ARTICLE_BODY],

@@ -8,7 +8,7 @@
 import { state } from './state';
 import { getTemplate } from '../templates/registry';
 import {
-  insertBlock, patchBlock, snapForUndo,
+  insertBlock, patchBlock, updateBlock, snapForUndo,
   initContainerZone, captureSnapshot,
 } from './blocks';
 import { sanitizeHtml } from '../utils/sanitize';
@@ -496,23 +496,8 @@ function renderGenericCard(wrapper: HTMLElement, inst: TemplateInstance): HTMLEl
   editBtn.addEventListener('click', () => {
     if (!tpl) return;
     openTemplateModal(tpl, inst, (html, updated) => {
-      const w = document.querySelector<HTMLElement>(`[data-instance-id="${inst.id}"]`);
-      if (w) {
-        const saved = new Map<string, Node[]>();
-        w.querySelectorAll<HTMLElement>('.nb-container-zone').forEach(z => {
-          saved.set(z.dataset.containerFor!, Array.from(z.childNodes));
-        });
-        const actions = w.querySelector<HTMLElement>('.nb-block-actions');
-        w.innerHTML = html;
-        if (actions) w.appendChild(actions);
-        w.querySelectorAll<HTMLElement>('.nb-container-zone').forEach(z => {
-          (saved.get(z.dataset.containerFor!) ?? []).forEach(c => z.appendChild(c));
-          initContainerZone(z);
-        });
-        state.instances.set(inst.id, updated);
-        triggerAutoSave();
-        renderFormDoc();
-      }
+      updateBlock(inst.id, html, updated);
+      renderFormDoc();
     });
   });
 
@@ -537,8 +522,10 @@ function renderGenericCard(wrapper: HTMLElement, inst: TemplateInstance): HTMLEl
 type AddEntry = { templateId: string; label: string };
 
 const TOP_LEVEL_ADDS: AddEntry[] = [
+  { templateId: 'fek-header',    label: 'Επικεφαλίδα ΦΕΚ' },
   { templateId: 'preamble',      label: 'Προοίμιο' },
   { templateId: 'part',          label: 'Μέρος' },
+  { templateId: 'section',       label: 'Τμήμα' },
   { templateId: 'chapter',       label: 'Κεφάλαιο' },
   { templateId: 'article',       label: 'Άρθρο' },
   { templateId: 'transitional',  label: 'Μεταβατική Διάταξη' },
@@ -546,6 +533,8 @@ const TOP_LEVEL_ADDS: AddEntry[] = [
   { templateId: 'amendment',     label: 'Τροποποίηση' },
   { templateId: 'annex',         label: 'Παράρτημα' },
   { templateId: 'closing',       label: 'Υπογραφές' },
+  { templateId: 'toc',           label: 'Πίνακας Περιεχομένων' },
+  { templateId: 'plaintext',     label: 'Απλό Κείμενο' },
 ];
 
 const CONTENT_ADDS: AddEntry[] = [

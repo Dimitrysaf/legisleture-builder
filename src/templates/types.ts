@@ -1,6 +1,6 @@
 export type FieldType = 'text' | 'textarea' | 'rich-text' | 'number' | 'select' | 'image' | 'container';
 
-export type TemplateCategory = 'structure' | 'content' | 'reference' | 'custom';
+export type TemplateCategory = 'structure' | 'content' | 'reference' | 'utility' | 'custom';
 
 export interface TemplateField {
   id: string;

@@ -99,15 +99,13 @@ export async function dbReadWorkspaceIndex(): Promise<ProjectStub[]> {
 
 export async function dbWriteWorkspaceIndex(stubs: ProjectStub[]): Promise<void> {
   const db = await openDB();
-  const store = tx(db, 'workspace', 'readwrite').objectStore('workspace');
-  await put(store, stubs); // put(value, key) — IDB put with explicit key below
-  // IDB put for non-keyPath stores: put(value, key)
   return new Promise((res, rej) => {
     const t = tx(db, 'workspace', 'readwrite');
     const s = t.objectStore('workspace');
     const req = s.put(stubs, 'index');
     req.onsuccess = () => res();
     req.onerror = () => rej(req.error);
+    t.onerror = () => rej(t.error);
   });
 }
 

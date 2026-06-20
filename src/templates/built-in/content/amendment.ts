@@ -1,6 +1,6 @@
-import type { Template } from '../types';
-import { toInline } from '../../utils/inline';
-import { escAttr } from '../../utils/escape';
+import type { Template } from '../../types';
+import { toInline } from '../../../utils/inline';
+import { escAttr } from '../../../utils/escape';
 
 // Machine-readable action values; display labels are derived in render()
 export const AMENDMENT_ACTIONS = [

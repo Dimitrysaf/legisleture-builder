@@ -1,27 +1,28 @@
 import type { Template, StoredCustomTemplate } from './types';
 import { escHtml, escAttr } from '../utils/escape';
-import { partTemplate } from './built-in/part';
-import { chapterTemplate } from './built-in/chapter';
-import { sectionTemplate } from './built-in/section';
-import { articleTemplate } from './built-in/article';
-import { paragraphTemplate } from './built-in/paragraph';
-import { subparagraphTemplate } from './built-in/subparagraph';
-import { preambleTemplate } from './built-in/preamble';
-import { lawRefTemplate } from './built-in/lawref';
-import { noteTemplate } from './built-in/note';
-import { definitionTemplate } from './built-in/definition';
-import { amendmentTemplate } from './built-in/amendment';
-import { annexTemplate } from './built-in/annex';
-import { transitionalTemplate } from './built-in/transitional';
-import { pagebreakTemplate } from './built-in/pagebreak';
-import { imageBlockTemplate } from './built-in/image-block';
-import { plaintextTemplate } from './built-in/plaintext';
-import { tableTemplate } from './built-in/table';
-import { closingTemplate } from './built-in/closing';
-import { finalArticleTemplate } from './built-in/final-article';
-import { footnoteTemplate } from './built-in/footnote';
-import { tocTemplate } from './built-in/toc';
-import { interpretiveTemplate } from './built-in/interpretive';
+import { partTemplate } from './built-in/structure/part';
+import { chapterTemplate } from './built-in/structure/chapter';
+import { sectionTemplate } from './built-in/structure/section';
+import { articleTemplate } from './built-in/structure/article';
+import { paragraphTemplate } from './built-in/content/paragraph';
+import { subparagraphTemplate } from './built-in/content/subparagraph';
+import { preambleTemplate } from './built-in/structure/preamble';
+import { lawRefTemplate } from './built-in/reference/lawref';
+import { noteTemplate } from './built-in/content/note';
+import { definitionTemplate } from './built-in/content/definition';
+import { amendmentTemplate } from './built-in/content/amendment';
+import { annexTemplate } from './built-in/structure/annex';
+import { transitionalTemplate } from './built-in/structure/transitional';
+import { pagebreakTemplate } from './built-in/utility/pagebreak';
+import { imageBlockTemplate } from './built-in/content/image-block';
+import { plaintextTemplate } from './built-in/content/plaintext';
+import { tableTemplate } from './built-in/content/table';
+import { closingTemplate } from './built-in/structure/closing';
+import { finalArticleTemplate } from './built-in/structure/final-article';
+import { footnoteTemplate } from './built-in/reference/footnote';
+import { tocTemplate } from './built-in/utility/toc';
+import { interpretiveTemplate } from './built-in/content/interpretive';
+import { fekHeaderTemplate } from './built-in/utility/fek-header';
 
 const STORAGE_KEY = 'nb_custom_templates';
 
@@ -48,6 +49,7 @@ const registry = new Map<string, Template>([
   ['footnote', footnoteTemplate],
   ['toc', tocTemplate],
   ['interpretive', interpretiveTemplate],
+  ['fek-header', fekHeaderTemplate],
 ]);
 
 export function getTemplate(id: string): Template | undefined {

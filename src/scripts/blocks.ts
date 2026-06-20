@@ -230,6 +230,7 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
   // Touch drag
   let touchDragActive = false;
   let touchLastY = 0;
+  const touchAbort = new AbortController();
   dragHandle.addEventListener('touchstart', (e) => {
     if (state.currentMode !== 'edit') return;
     e.preventDefault();
@@ -258,14 +259,14 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
       sibling.after(wrapper);
     }
     renumberDocument(state.paper, state.instances);
-  }, { passive: false });
+  }, { passive: false, signal: touchAbort.signal });
 
   document.addEventListener('touchend', () => {
     if (!touchDragActive) return;
     touchDragActive = false;
     wrapper.classList.remove('nb-dragging');
     triggerAutoSave();
-  }, { passive: true });
+  }, { passive: true, signal: touchAbort.signal });
 
   actions.querySelector('.nb-action-btn--up')!.addEventListener('click', () => {
     const prev = wrapper.previousElementSibling;
@@ -312,6 +313,7 @@ function attachActions(wrapper: HTMLElement, instanceId: string, _target: HTMLEl
   });
 
   actions.querySelector('.nb-action-btn--delete')!.addEventListener('click', () => {
+    touchAbort.abort();
     pushSnapshot(captureSnapshot());
     wrapper.remove();
     state.instances.delete(instanceId);

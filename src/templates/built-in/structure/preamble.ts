@@ -1,4 +1,4 @@
-import type { Template } from '../types';
+import type { Template } from '../../types';
 
 const AUTHORITY_OPTIONS = [
   { value: 'Η ΒΟΥΛΗ ΤΩΝ ΕΛΛΗΝΩΝ',                        label: 'Η ΒΟΥΛΗ ΤΩΝ ΕΛΛΗΝΩΝ' },

@@ -1,11 +1,11 @@
-import type { Template } from '../types';
+import type { Template } from '../../types';
 
 export const closingTemplate: Template = {
   id: 'closing',
   name: 'Υπογραφές',
   icon: 'pen-line',
   description: 'Τόπος, ημερομηνία και υπογράφοντες',
-  category: 'content',
+  category: 'structure',
   fields: [
     {
       id: 'place_date',

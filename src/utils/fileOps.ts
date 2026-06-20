@@ -1,7 +1,7 @@
 import type { TemplateInstance } from '../templates/types';
 import type { FekMeta } from './fekMeta';
 import type { Project, ProjectFile } from '../types/project';
-import { buildFekHeaderHtml, hasFekMeta } from './fekMeta';
+import { buildFekHeaderHtml, hasFekMeta, EMPTY_META } from './fekMeta';
 
 // ── Data model ─────────────────────────────────────────────────────
 
@@ -88,6 +88,35 @@ function serializeContainer(
   }
 
   return blocks;
+}
+
+// ── ΦΕΚ meta from block ────────────────────────────────────────────
+
+/**
+ * Reads ΦΕΚ metadata from a fek-header block in the paper.
+ * Falls back to `fallback` (e.g. project.fekMeta) if no block is found.
+ */
+export function readFekMeta(
+  paper: HTMLElement,
+  instances: Map<string, TemplateInstance>,
+  fallback?: FekMeta,
+): FekMeta {
+  for (const child of paper.children) {
+    const w = child as HTMLElement;
+    if (!w.classList.contains('nb-block-wrapper')) continue;
+    const id = w.dataset.instanceId;
+    if (!id) continue;
+    const inst = instances.get(id);
+    if (inst?.templateId !== 'fek-header') continue;
+    return {
+      teuchos:    inst.data.teuchos    ?? '',
+      arithmos:   inst.data.arithmos   ?? '',
+      hmeromhnia: inst.data.hmeromhnia ?? '',
+      titlos:     inst.data.titlos     ?? '',
+      twoColumn:  inst.data.twoColumn  === 'true',
+    };
+  }
+  return fallback ?? { ...EMPTY_META };
 }
 
 // ── HTML export ────────────────────────────────────────────────────
@@ -203,6 +232,9 @@ body {
 .nb-figure-caption  { font-size: 9pt; color: #6b7280; text-align: left; margin-top: 5pt; font-style: italic; line-height: 1.4; }
 .nb-figure-num      { font-weight: 700; font-style: normal; }
 
+/* ── ΦΕΚ header block ── */
+.nb-block--fek-header { column-span: all; }
+
 /* ── Two-column layout ── */
 .nb-content { column-count: 2; column-gap: 6mm; column-rule: 0.5pt solid #e5e7eb; }
 
@@ -293,10 +325,17 @@ ${headerHtml}${bodyInner}
 export function buildDocHtml(paper: HTMLElement, meta: FekMeta | null): string {
   const clone = cloneForExport(paper);
   const title = meta?.titlos || 'Νόμος';
-  const headerHtml = (meta && hasFekMeta(meta))
+
+  // If a fek-header block is already in the document, don't inject a second header
+  const fekBlock = clone.querySelector<HTMLElement>('.nb-block--fek-header');
+  const headerHtml = (!fekBlock && meta && hasFekMeta(meta))
     ? buildFekHeaderHtml(meta, '/Coat_of_arms_of_Greece.svg') + '\n'
     : '';
-  const bodyInner = meta?.twoColumn
+
+  const isTwoColumn = fekBlock
+    ? fekBlock.dataset.twoColumn === 'true'
+    : (meta?.twoColumn ?? false);
+  const bodyInner = isTwoColumn
     ? `<div class="nb-content">${clone.innerHTML}</div>`
     : clone.innerHTML;
   return wrapHtmlDoc(title, headerHtml, bodyInner);
@@ -315,17 +354,36 @@ export async function exportFekHtml(paper: HTMLElement, meta: FekMeta): Promise<
   const clone = cloneForExport(paper);
   const title = meta.titlos || 'Νόμος';
 
-  if (!hasFekMeta(meta)) {
-    return wrapHtmlDoc(title, '', clone.innerHTML);
-  }
-
-  let svgSrc = '/Coat_of_arms_of_Greece.svg';
+  let svgSrc = '';
   try {
     const resp = await fetch('/Coat_of_arms_of_Greece.svg');
     if (resp.ok) svgSrc = await resp.text();
-  } catch { /* use URL fallback */ }
+  } catch { /* use img URL fallback */ }
 
-  const headerHtml = buildFekHeaderHtml(meta, svgSrc);
+  const fekBlock = clone.querySelector<HTMLElement>('.nb-block--fek-header');
+
+  if (fekBlock) {
+    // Inline the coat-of-arms SVG so the download is self-contained
+    if (svgSrc) {
+      const imgEl = clone.querySelector<HTMLImageElement>('.nb-fek-emblem-img');
+      if (imgEl) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = svgSrc;
+        const svgEl = tmp.firstElementChild;
+        if (svgEl) imgEl.replaceWith(svgEl);
+      }
+    }
+    const isTwoColumn = fekBlock.dataset.twoColumn === 'true';
+    const bodyInner = isTwoColumn
+      ? `<div class="nb-content">${clone.innerHTML}</div>`
+      : clone.innerHTML;
+    return wrapHtmlDoc(title, '', bodyInner);
+  }
+
+  // Legacy: no fek-header block — inject from meta
+  if (!hasFekMeta(meta)) return wrapHtmlDoc(title, '', clone.innerHTML);
+
+  const headerHtml = buildFekHeaderHtml(meta, svgSrc || '/Coat_of_arms_of_Greece.svg');
   const bodyInner = meta.twoColumn
     ? `<div class="nb-content">${clone.innerHTML}</div>`
     : clone.innerHTML;

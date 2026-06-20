@@ -5,8 +5,9 @@ import { EMPTY_META, hasFekMeta, buildFekHeaderHtml } from '../utils/fekMeta';
 import { renderFormDoc, flushFormEdits, syncFocusedField } from './formEditor';
 
 export function buildPreviewPages(): HTMLElement {
+  const hasFekBlock = !!state.paper.querySelector('[data-template="fek-header"]');
   const fekMeta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
-  const PADDING_V = (hasFekMeta(fekMeta) ? 20 : 40) + 56;
+  const PADDING_V = (hasFekBlock || hasFekMeta(fekMeta) ? 20 : 40) + 56;
 
   const probe = document.createElement('div');
   probe.style.cssText = 'position:fixed;top:0;left:0;height:297mm;visibility:hidden;pointer-events:none;';
@@ -46,7 +47,8 @@ export function buildPreviewPages(): HTMLElement {
 
   let firstPageInjected = false;
   function injectFekHeaderIfNeeded(page: HTMLElement): void {
-    if (firstPageInjected || !hasFekMeta(fekMeta)) return;
+    // Skip if a fek-header block is already in the document (it renders itself)
+    if (hasFekBlock || firstPageInjected || !hasFekMeta(fekMeta)) return;
     firstPageInjected = true;
     const headerHtml = buildFekHeaderHtml(fekMeta, '/Coat_of_arms_of_Greece.svg');
     const headerWrapper = document.createElement('div');

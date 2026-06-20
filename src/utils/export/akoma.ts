@@ -85,9 +85,14 @@ function buildMeta(meta?: FekMetaLike): string {
 // ── <preamble> ───────────────────────────────────────────────────────
 
 function buildPreamble(block: SavedBlock, _ctx: ExportCtx): string {
-  const body = block.data.body ?? '';
+  const authority = [block.data.authority, block.data.authority_suffix].filter(Boolean).join(' ');
+  const bases     = block.data.bases ?? '';
+  const proposal  = block.data.proposal?.trim() ?? '';
+  const conclusion = block.data.conclusion?.trim() ?? '';
+
+  const parts = [authority, bases, proposal, conclusion].filter(Boolean).join(' ');
   return `    <preamble>
-${wrapContent(body, '      ')}    </preamble>
+${wrapContent(parts, '      ')}    </preamble>
 `;
 }
 
@@ -200,7 +205,7 @@ function paragraphToXml(b: SavedBlock, ctx: ExportCtx, indent: string): string {
   ctx.counters['para'] = (ctx.counters['para'] ?? 0) + 1;
   const eId  = `para-${ctx.counters['para']}`;
   const num  = xe(b.data.number ?? String(ctx.counters['para']));
-  const body = b.data.body ?? '';
+  const body = b.data.content ?? '';
 
   const subChildren = b.zones.subparagraphs ?? [];
   const inner = subChildren.length > 0
@@ -218,8 +223,8 @@ ${inner}${indent}</paragraph>
 function subparagraphToXml(b: SavedBlock, ctx: ExportCtx, indent: string): string {
   ctx.counters['sub'] = (ctx.counters['sub'] ?? 0) + 1;
   const eId  = `sub-${ctx.counters['sub']}`;
-  const label = xe(b.data.label ?? '');
-  const body  = b.data.body ?? '';
+  const label = xe(b.data.number ?? '');
+  const body  = b.data.content ?? '';
 
   const subChildren = b.zones.subparagraphs ?? [];
   const inner = subChildren.length > 0
@@ -275,8 +280,10 @@ ${wrapContent(body, indent + '  ')}${indent}</content>
 }
 
 function closingToXml(b: SavedBlock, indent: string): string {
-  const body = b.data.body ?? '';
-  if (!body.trim()) return '';
+  const placeDate  = b.data.place_date?.trim() ?? '';
+  const signatories = b.data.signatories?.trim() ?? '';
+  const body = [placeDate, signatories].filter(Boolean).join('\n');
+  if (!body) return '';
   return `${indent}<conclusions>
 ${wrapContent(body, indent + '  ')}${indent}</conclusions>
 `;

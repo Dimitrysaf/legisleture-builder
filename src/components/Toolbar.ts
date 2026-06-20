@@ -46,12 +46,6 @@ export function initToolbar(container: HTMLElement): void {
         <span class="nb-autosave-indicator" id="nb-autosave-dot" title="Αυτόματη αποθήκευση ενεργή"></span>
       </button>
 
-      <!-- ΦΕΚ metadata -->
-      <button class="nb-sidebar-btn" id="nb-fek-meta-btn" type="button" title="Στοιχεία ΦΕΚ">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-        ΦΕΚ Στοιχεία
-      </button>
-
       <!-- Import -->
       <button class="nb-sidebar-btn" id="nb-import-btn" type="button" title="Φόρτωση αρχείου .json ή .tex">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>

@@ -1,4 +1,4 @@
-import type { Template } from '../types';
+import type { Template } from '../../types';
 
 const WIDTH_OPTIONS = [
   { value: '33',  label: 'Μικρό — 1/3 σελίδας' },

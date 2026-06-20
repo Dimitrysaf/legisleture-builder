@@ -1,11 +1,11 @@
-import type { Template } from '../types';
+import type { Template } from '../../types';
 
 export const tocTemplate: Template = {
   id: 'toc',
   name: 'Πίν. Περιεχ.',
   icon: 'list',
   description: 'Αυτόματος πίνακας περιεχομένων — κλικ Επεξεργασία για ανανέωση',
-  category: 'content',
+  category: 'utility',
   fields: [],
   render(data) {
     const body = data.body?.trim() ?? '';

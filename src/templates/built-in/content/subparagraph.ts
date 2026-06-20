@@ -1,5 +1,5 @@
-import type { Template } from '../types';
-import { toInline } from '../../utils/inline';
+import type { Template } from '../../types';
+import { toInline } from '../../../utils/inline';
 
 export const subparagraphTemplate: Template = {
   id: 'subparagraph',

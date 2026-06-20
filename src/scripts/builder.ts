@@ -2,7 +2,6 @@ import { state } from './state';
 import { initPaper, undo, redo, loadFromProject } from './blocks';
 import { applyModes, initModeTabs } from './modes';
 import { initFileMenu } from './fileMenu';
-import { initFekMetaModal } from './modals/fekMeta';
 import { initRestoreBanner } from './modals/restore';
 import { initSettingsModal } from './modals/settings';
 import { initFormEditor, renderFormDoc } from './formEditor';
@@ -115,7 +114,6 @@ document.addEventListener('keydown', (e) => {
 
 initFileMenu();
 initRestoreBanner();
-initFekMetaModal();
 initSettingsModal();
 initModeTabs();
 applyModes(['edit']);

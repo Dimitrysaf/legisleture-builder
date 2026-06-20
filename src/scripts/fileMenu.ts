@@ -2,9 +2,9 @@ import { state } from './state';
 import { showSaveStatus } from './toast';
 import { showAlert } from './dialogs';
 import { loadFromSaveFile, loadFromProject } from './blocks';
-import { serializeDocument, serializeProject, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile } from '../utils/fileOps';
+import { serializeDocument, serializeProject, exportHtml, exportFekHtml, buildDocHtml, exportTxt, downloadBlob, isSaveFile, readFekMeta } from '../utils/fileOps';
 import { generateLatex } from '../utils/latex';
-import { EMPTY_META, hasFekMeta } from '../utils/fekMeta';
+import { hasFekMeta } from '../utils/fekMeta';
 import { parseLaTeX } from '../utils/latexImport';
 import { exportAkomaNtoso } from '../utils/export/akoma';
 import { saveAsPackage, loadFromPackage, isFolderPackageSupported } from '../utils/folderPackage';
@@ -19,7 +19,7 @@ function exportHtmlFile(): void {
 }
 
 async function exportFekHtmlFile(): Promise<void> {
-  const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
+  const meta = readFekMeta(state.paper, state.instances, state.currentProject?.fekMeta);
   const html = await exportFekHtml(state.paper, meta);
   downloadBlob(html, 'nomos-fek.html', 'text/html');
 }
@@ -34,14 +34,14 @@ function exportTxtFile(): void {
 
 function exportAkomaFile(): void {
   const save = serializeDocument(state.paper, state.instances);
-  const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
+  const meta = readFekMeta(state.paper, state.instances, state.currentProject?.fekMeta);
   const xml  = exportAkomaNtoso(save.blocks, {
-    number:    meta.number,
-    date:      meta.date,
-    subject:   meta.subject,
-    fekSeries: meta.fekSeries,
-    fekNumber: meta.fekNumber,
-    fekDate:   meta.fekDate,
+    number:    meta.arithmos,
+    date:      meta.hmeromhnia,
+    subject:   meta.titlos,
+    fekSeries: meta.teuchos,
+    fekNumber: meta.arithmos,
+    fekDate:   meta.hmeromhnia,
   });
   downloadBlob(xml, 'nomos-akoma.xml', 'application/xml');
   showSaveStatus('Εξαγωγή Akoma Ntoso XML');
@@ -93,7 +93,7 @@ async function loadProjectPackage(): Promise<void> {
 }
 
 function printDocument(): void {
-  const meta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
+  const meta = readFekMeta(state.paper, state.instances, state.currentProject?.fekMeta);
   const html = buildDocHtml(state.paper, hasFekMeta(meta) ? meta : null);
   const popup = window.open('', '_blank');
   if (!popup) {
