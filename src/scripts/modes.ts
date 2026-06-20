@@ -2,7 +2,7 @@ import type { AppMode } from './state';
 import { state } from './state';
 import { buildDocHtml } from '../utils/fileOps';
 import { EMPTY_META, hasFekMeta, buildFekHeaderHtml } from '../utils/fekMeta';
-import { renderFormDoc, flushFormEdits } from './formEditor';
+import { renderFormDoc, flushFormEdits, syncFocusedField } from './formEditor';
 
 export function buildPreviewPages(): HTMLElement {
   const fekMeta = state.currentProject?.fekMeta ?? { ...EMPTY_META };
@@ -89,6 +89,9 @@ export function buildPreviewPages(): HTMLElement {
 }
 
 export function refreshPreviewPane(): void {
+  state.lastPreviewVersion = state.docVersion;
+  // Flush any in-progress typing to state.paper before rendering.
+  syncFocusedField();
   const pane = document.getElementById('nb-preview-pane');
   if (!pane) return;
   let iframe = pane.querySelector<HTMLIFrameElement>('iframe');
@@ -157,4 +160,12 @@ export function initModeTabs(): void {
     });
   });
 
+  // Poll every 2 s. First sync any focused rich field (in case the user is
+  // actively typing and hasn't blurred yet), then refresh if version changed.
+  setInterval(() => {
+    if (!state.activeModes.includes('preview')) return;
+    syncFocusedField(); // may increment docVersion
+    if (state.docVersion === state.lastPreviewVersion) return;
+    refreshPreviewPane();
+  }, 2000);
 }

@@ -18,6 +18,7 @@ import { openTemplateModal } from '../components/TemplateModal';
 import { triggerAutoSave } from './autosave';
 import { unregisterEntry } from '../utils/docRegistry';
 import { showConfirm } from './confirmModal';
+import { initRichToolbar, attachRichToolbar } from '../components/RichToolbar';
 import type { TemplateInstance } from '../templates/types';
 
 // ── Module state ───────────────────────────────────────────────────────────
@@ -36,6 +37,7 @@ function closeOpenDropdown(): void {
 
 export function initFormEditor(pane: HTMLElement): void {
   paneEl = pane;
+  initRichToolbar();
   document.addEventListener('click', closeOpenDropdown);
   pane.addEventListener('scroll', closeOpenDropdown, { passive: true });
 }
@@ -60,6 +62,20 @@ export function flushFormEdits(): void {
   if (!paneEl) return;
   const focused = paneEl.querySelector<HTMLElement>('[contenteditable]:focus');
   if (focused) (focused as HTMLElement).blur();
+}
+
+// Sync the currently-focused rich field to state.paper without removing focus.
+// Called by the preview poll so typing appears in the preview within 2 s.
+export function syncFocusedField(): void {
+  if (!paneEl) return;
+  const focused = paneEl.querySelector<HTMLElement>('[contenteditable][data-iid][data-field]:focus');
+  if (!focused) return;
+  const clean = sanitizeHtml(focused.innerHTML);
+  const iid = focused.dataset.iid!;
+  const field = focused.dataset.field!;
+  const inst = state.instances.get(iid);
+  if (!inst || inst.data[field] === clean) return;
+  saveField(iid, field, clean);
 }
 
 // ── Card rendering ─────────────────────────────────────────────────────────
@@ -273,7 +289,13 @@ function renderParaRow(wrapper: HTMLElement, inst: TemplateInstance, zoneEl: HTM
     const addSubBtn = el('button', 'nb-fe-add-child-btn nb-fe-add-child-btn--sub');
     addSubBtn.type = 'button';
     addSubBtn.textContent = '+ Υποπαράγραφος';
-    addSubBtn.addEventListener('click', () => addSubparagraph(subZoneEl, subDiv));
+    addSubBtn.addEventListener('click', () => {
+      // Look up zone fresh from state.paper — patchBlock may have replaced the
+      // original DOM node, making a captured reference stale.
+      const freshW = state.paper.querySelector<HTMLElement>(`[data-instance-id="${inst.id}"]`);
+      const freshZ = freshW?.querySelector<HTMLElement>('.nb-container-zone[data-container-for="subparagraphs"]');
+      if (freshZ) addSubparagraph(freshZ, subDiv);
+    });
     subDiv.appendChild(addSubBtn);
     row.appendChild(subDiv);
   }
@@ -323,7 +345,12 @@ function renderSubparaRow(wrapper: HTMLElement, inst: TemplateInstance, zoneEl: 
     const addBtn = el('button', 'nb-fe-add-child-btn nb-fe-add-child-btn--sub');
     addBtn.type = 'button';
     addBtn.textContent = '+ Υποπαράγραφος';
-    addBtn.addEventListener('click', () => addSubparagraph(nestedZone, nestedDiv));
+    addBtn.addEventListener('click', () => {
+      // Same stale-reference guard: look up from state.paper by instance ID.
+      const freshW = state.paper.querySelector<HTMLElement>(`[data-instance-id="${inst.id}"]`);
+      const freshZ = freshW?.querySelector<HTMLElement>('.nb-container-zone[data-container-for="subparagraphs"]');
+      if (freshZ) addSubparagraph(freshZ, nestedDiv);
+    });
     nestedDiv.appendChild(addBtn);
     row.appendChild(nestedDiv);
   }
@@ -614,6 +641,7 @@ function addParagraph(zoneEl: HTMLElement, bodyDiv: HTMLElement, _articleId: str
   const wrapper = zoneEl.lastElementChild as HTMLElement;
   const row = renderParaRow(wrapper, inst, zoneEl);
   bodyDiv.appendChild(row);
+  wireFieldInputs(row);
 
   row.querySelector<HTMLElement>('.nb-fe-rich')?.focus();
 }
@@ -637,6 +665,7 @@ function addSubparagraph(zoneEl: HTMLElement, subDiv: HTMLElement): void {
   const addBtn = subDiv.querySelector<HTMLElement>(':scope > .nb-fe-add-child-btn');
   if (addBtn) addBtn.before(row);
   else subDiv.appendChild(row);
+  wireFieldInputs(row);
 
   row.querySelector<HTMLElement>('.nb-fe-rich')?.focus();
 }
@@ -792,6 +821,7 @@ function makeRichField(iid: string, field: string, html: string): HTMLElement {
   if (!html) {
     div.dataset.placeholder = 'Πληκτρολογήστε κείμενο...';
   }
+  attachRichToolbar(div);
   return div;
 }
 

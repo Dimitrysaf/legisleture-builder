@@ -147,10 +147,14 @@ export function patchBlock(instanceId: string, newData: Record<string, string>):
   const wrapper = document.querySelector<HTMLElement>(`[data-instance-id="${instanceId}"]`);
   if (!wrapper) return;
 
+  // Only save zones that are DIRECT children of this wrapper (not zones that
+  // belong to nested child block-wrappers — those travel with their parents).
   const saved = new Map<string, Node[]>();
-  wrapper.querySelectorAll<HTMLElement>('.nb-container-zone').forEach(z => {
-    saved.set(z.dataset.containerFor!, Array.from(z.childNodes));
-  });
+  Array.from(wrapper.querySelectorAll<HTMLElement>('.nb-container-zone'))
+    .filter(z => z.closest('.nb-block-wrapper') === wrapper)
+    .forEach(z => {
+      saved.set(z.dataset.containerFor!, Array.from(z.childNodes));
+    });
 
   const updated = { ...inst, data: { ...inst.data, ...newData } };
   const actions = wrapper.querySelector<HTMLElement>('.nb-block-actions');
@@ -177,10 +181,11 @@ export function updateBlock(instanceId: string, html: string, newInstance: Templ
   if (!wrapper) return;
 
   const savedChildren = new Map<string, Node[]>();
-  wrapper.querySelectorAll<HTMLElement>('.nb-container-zone').forEach(zone => {
-    const key = zone.dataset.containerFor!;
-    savedChildren.set(key, Array.from(zone.childNodes));
-  });
+  Array.from(wrapper.querySelectorAll<HTMLElement>('.nb-container-zone'))
+    .filter(zone => zone.closest('.nb-block-wrapper') === wrapper)
+    .forEach(zone => {
+      savedChildren.set(zone.dataset.containerFor!, Array.from(zone.childNodes));
+    });
 
   const actions = wrapper.querySelector<HTMLElement>('.nb-block-actions');
   wrapper.innerHTML = html;

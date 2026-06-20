@@ -156,7 +156,7 @@ body {
 .nb-block--subparagraph { margin: 0; padding: 0; }
 .nb-paragraph  { margin: 0; line-height: 1.25; overflow-wrap: break-word; word-break: break-word; }
 .nb-para-num   { font-weight: 700; white-space: nowrap; }
-.nb-subpara-zone { padding-left: 22px; }
+.nb-subpara-zone { padding-left: 0; }
 
 /* ── Preamble ── */
 .nb-block--preamble         { margin: 0; }

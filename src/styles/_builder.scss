@@ -821,9 +821,8 @@ body[data-nb-mode="code"] .nb-canvas {
   white-space: nowrap;
 }
 
-/* Each container zone inside a paragraph/subparagraph indents its children */
 .nb-subpara-zone {
-  padding-left: 22px;
+  padding-left: 0;
 }
 
 /* --- Preamble --- */
